@@ -44,7 +44,7 @@ add_executable(helios
 target_include_directories(helios
     PUBLIC
         include
-        include/glm-1.0.3
+        include/glm
 )
 
 target_link_libraries(helios
