@@ -10,7 +10,6 @@ set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/include/imgui)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
-# ImGui library
 add_library(imgui
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
@@ -33,7 +32,6 @@ target_link_libraries(imgui
         OpenGL::GL
 )
 
-# Main executable
 add_executable(helios
     src/glad.c
     src/main.cpp
@@ -44,10 +42,12 @@ add_executable(helios
 target_include_directories(helios
     PUBLIC
         include
-        include/glm
+        include/glm-master/
 )
 
 target_link_libraries(helios
     PRIVATE
         imgui
+        glfw
+        OpenGL::GL
 )

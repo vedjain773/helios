@@ -1,10 +1,10 @@
 #include "glad/glad.h"
 #include "shader.hpp"
 #include "camera.hpp"
-#include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h>
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -76,8 +76,8 @@ int main() {
     
     CamConfig config = {
         {0.0f, 0.0f, 10.0f},
-        {0.0f, 0.0f, -1.0f},
         {0.0f, 1.0f, 0.0f},
+        -90.0f, 0.0f,
         45.0f, 0.1f, 100.0f
     };
 
@@ -89,20 +89,24 @@ int main() {
     camera.setProj(shader);
 
     Vec3 cam_pos = {0.0, 0.0, 10.0};
+    
     float fov = 45.0f;
     float near = 0.1f;
     float far = 100.0f;
 
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+
     bool cam_window = true;
     
+    model = glm::rotate(model, glm::radians(90.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE,
+            glm::value_ptr(model)); 
+
     while(!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT); 
-        
-        model = glm::rotate(model, glm::radians((float) glfwGetTime() * 0.1f),
-                glm::vec3(1.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE,
-                glm::value_ptr(model)); 
+        glClear(GL_COLOR_BUFFER_BIT);  
          
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 6); 
@@ -115,6 +119,7 @@ int main() {
         {  
             bool camChanged = false;
             bool cfgChanged = false;
+            bool angChanged = false;
 
             ImGui::Begin("Camera", &cam_window);
             camChanged |= ImGui::SliderFloat("x", &cam_pos.x, 0.0f, 10.0f);
@@ -125,11 +130,16 @@ int main() {
             cfgChanged |= ImGui::SliderFloat("near", &near, 0.1f, 100.0f);
             cfgChanged |= ImGui::SliderFloat("far", &far, 0.1f, 100.0f);
 
+            angChanged |= ImGui::SliderFloat("yaw", &yaw, -180.0f, 180.0f);
+            angChanged |= ImGui::SliderFloat("pitch", &pitch, -90.0f, 90.0f);
+
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 
                     1000.0f / io.Framerate, io.Framerate);
             
             if (camChanged) camera.setCamPos(cam_pos);
             if (cfgChanged) camera.setProjCfg(fov, near, far);
+            if (angChanged) camera.setCamDir(yaw, pitch);
+
             ImGui::End();
         }
        

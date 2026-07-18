@@ -2,6 +2,6 @@
 	path = include/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
-[submodule "include/glm"]
-	path = include/glm
+[submodule "include/glm-master"]
+	path = include/glm-master
 	url = https://github.com/g-truc/glm.git

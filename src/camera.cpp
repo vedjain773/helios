@@ -1,15 +1,11 @@
 #include "camera.hpp"
+#include <cmath>
 
 Camera::Camera(CamConfig &config)
-    :position(config.position), target(config.target), up(config.up), 
+    :position(config.position), up(config.up), yaw(config.yaw), pitch(config.pitch), 
     fov(config.fov), near(config.near), far(config.far) 
 {
-    cameraPos = glm::vec3(position.x, position.y, position.z);
-    cameraTarget = glm::vec3(target.x, target.y, target.z); 
-    cameraUp = glm::vec3(up.x, up.y, up.z);
-
-    view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
-    proj = glm::perspective(glm::radians(fov), 800.0f / 600.0f, near, far);
+    update();
 }
 
 void Camera::setView(Shader &shader) {
@@ -28,6 +24,11 @@ void Camera::setCamPos(Vec3 &cam_pos) {
     position = cam_pos;
 }
 
+void Camera::setCamDir(float yaw, float pitch) {
+    this->yaw = yaw;
+    this->pitch = pitch;
+}
+
 void Camera::setProjCfg(float fov, float near, float far) {
     this->fov = fov;
     this->near = near;
@@ -36,9 +37,17 @@ void Camera::setProjCfg(float fov, float near, float far) {
 
 void Camera::update() {
     cameraPos = glm::vec3(position.x, position.y, position.z);
-    cameraTarget = glm::vec3(target.x, target.y, target.z); 
+   
+    cameraDir = glm::vec3(
+                cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+                sin(glm::radians(pitch)), 
+                sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+                );
+
+    cameraDir = glm::normalize(cameraDir);
+
     cameraUp = glm::vec3(up.x, up.y, up.z);
 
-    view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+    view = glm::lookAt(cameraPos, cameraPos + cameraDir, cameraUp);
     proj = glm::perspective(glm::radians(fov), 800.0f / 600.0f, near, far);
 }

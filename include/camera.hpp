@@ -9,9 +9,10 @@
 #include "glm/gtc/type_ptr.hpp"
 
 struct CamConfig {
-    Vec3 position;
-    Vec3 target;
+    Vec3 position; 
     Vec3 up;
+    float yaw;
+    float pitch;
     float fov;
     float near;
     float far;
@@ -20,14 +21,15 @@ struct CamConfig {
 class Camera {
   private:
     Vec3 position;
-    Vec3 target;
     Vec3 up;
+    float yaw;
+    float pitch;
     float fov;
     float near;
     float far;
-
+    
     glm::vec3 cameraPos;
-    glm::vec3 cameraTarget; 
+    glm::vec3 cameraDir; 
     glm::vec3 cameraUp;
 
     glm::mat4 view;
@@ -38,6 +40,7 @@ class Camera {
     void setView(Shader &shader);
     void setProj(Shader &shader);
     void setCamPos(Vec3 &cam_pos);
+    void setCamDir(float yaw, float pitch);
     void setProjCfg(float fov, float near, float far);
     void update();
 };
