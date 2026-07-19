@@ -1,9 +1,6 @@
 #include "renderer.hpp"
 #include <iostream>
 
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-
 void framebufferSizeCallBack(GLFWwindow *window, int nwidth, int nheight) {
     glViewport(0, 0, nwidth, nheight); 
 }
@@ -61,8 +58,6 @@ void Renderer::loadShaders(Shader &shader, ComputeShader &computeShader) {
 }
 
 void Renderer::createScreenQuad() {
-    unsigned int texture;
-
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -113,6 +108,8 @@ void Renderer::renderQuad() {
 
 
 void Renderer::runRenderLoop() {
+    createScreenQuad();
+
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
          
@@ -120,11 +117,11 @@ void Renderer::runRenderLoop() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
           
-        /*glActiveTexture(GL_TEXTURE0);
-        shader.use();
-        shader.setInt("tex", 0);
+        glActiveTexture(GL_TEXTURE0);
+        shader->use();
+        shader->setInt("tex", 0);
         glBindTexture(GL_TEXTURE_2D, texture);
-        renderQuad();*/
+        renderQuad();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

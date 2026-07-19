@@ -16,6 +16,10 @@ class Renderer {
         unsigned int width;
         unsigned int height;
         
+        unsigned int texture;
+        unsigned int quadVAO = 0;
+        unsigned int quadVBO;
+        
         Shader *shader;
         ComputeShader *computeShader;
 
