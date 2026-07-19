@@ -9,7 +9,7 @@ Shader::Shader(const std::string &vertexShaderPath, const std::string &fragmentS
     std::ifstream fragmentShaderFile(fragmentShaderPath);
     
     if (!vertexShaderFile || !fragmentShaderFile) {
-        throw std::runtime_error("Could not open file");
+        throw std::runtime_error("Vertex/fragment shader source file not found");
     }
 
     std::stringstream vsBuf, fsBuf;

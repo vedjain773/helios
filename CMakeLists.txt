@@ -36,7 +36,9 @@ add_executable(helios
     src/glad.c
     src/main.cpp
     src/shader.cpp
+    src/compute.cpp
     src/camera.cpp
+    src/renderer.cpp
 )
 
 target_include_directories(helios
