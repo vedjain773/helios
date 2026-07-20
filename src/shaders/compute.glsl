@@ -13,7 +13,21 @@ struct Ray {
     vec3 direction;
 };
 
+bool hitSphere(vec3 center, float radius, Ray ray) {
+    vec3 oc = center - ray.source;
+    float a = dot(ray.direction, ray.direction);
+    float b = -2.0 * dot(ray.direction, oc);
+    float c = dot(oc, oc) - radius*radius;
+    float discriminant = b*b - 4*a*c;
+    return (discriminant >= 0);
+}
+
 vec3 getColor(Ray ray) {
+
+    if (hitSphere(vec3(0.0, 0.0, -1.0), 0.5, ray)) {
+        return vec3(1.0, 0.0, 0.0);
+    }
+
     vec3 unit_dir = normalize(ray.direction);
     float t = (unit_dir.y + 1.0) * 0.5;
     vec3 result = mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.7, 1.0), t);

@@ -34,9 +34,9 @@ void Camera::update() {
     float viewportWidth = viewportHeight * aspectRatio;
         
     glm::vec3 forward = glm::vec3(
-            cos(pitch) * cos(yaw),
-            sin(pitch),
-            cos(pitch) * sin(yaw));
+            cos(glm::radians(pitch)) * cos(glm::radians(yaw)),
+            sin(glm::radians(pitch)),
+            cos(glm::radians(pitch)) * sin(glm::radians(yaw)));
 
     glm::vec3 w = -forward;
     glm::vec3 u = glm::normalize(glm::cross(worldUp, w));
