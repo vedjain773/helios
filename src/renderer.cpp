@@ -5,7 +5,8 @@ void framebufferSizeCallBack(GLFWwindow *window, int nwidth, int nheight) {
     glViewport(0, 0, nwidth, nheight); 
 }
 
-Renderer::Renderer(unsigned int width, unsigned int height): width(width), height(height) {}
+Renderer::Renderer(unsigned int width, unsigned int height, Camera &camera)
+    :width(width), height(height), camera(camera) {}
 
 int Renderer::initGLFW() {
     glfwInit();
@@ -117,6 +118,12 @@ void Renderer::runRenderLoop() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
           
+        camera.update();
+        computeShader->use();
+        camera.updateParams(computeShader->ID);
+        glDispatchCompute(width, height, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
         glActiveTexture(GL_TEXTURE0);
         shader->use();
         shader->setInt("tex", 0);
@@ -131,7 +138,7 @@ void Renderer::runRenderLoop() {
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
-        }
+        } 
         
         glfwSwapBuffers(window);
         glfwPollEvents();

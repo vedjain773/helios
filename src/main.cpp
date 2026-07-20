@@ -5,9 +5,20 @@
 #include <iostream>
 
 int main() {  
-    Renderer renderer(800, 600);
+    CamConfig cfg = {
+        {0, 0, 0},
+        {0, 1, 0},
+        -1.57f,
+        0.0f,
+        45.0f,
+        800.0f,
+        600.0f
+    };
+
+    Camera camera(cfg);
+    Renderer renderer(800, 600, camera);
     renderer.initGLFW();
-    renderer.initImgui();
+    renderer.initImgui(); 
 
     Shader shader("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
     ComputeShader compShader("../src/shaders/compute.glsl");  

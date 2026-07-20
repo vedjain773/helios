@@ -1,23 +1,13 @@
 #include "camera.hpp"
 #include <cmath>
+#include <iostream>
 
 Camera::Camera(CamConfig &config)
     :position(config.position), up(config.up), yaw(config.yaw), pitch(config.pitch), 
-    fov(config.fov), near(config.near), far(config.far) 
+    fov(config.fov), width(config.width), height(config.height) 
 {
+    aspectRatio = width / height; 
     update();
-}
-
-void Camera::setView(Shader &shader) {
-    glUniformMatrix4fv(
-            glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE,
-            glm::value_ptr(view));  
-}
-
-void Camera::setProj(Shader &shader) {
-    glUniformMatrix4fv(
-            glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE,
-            glm::value_ptr(proj));
 }
 
 void Camera::setCamPos(Vec3 &cam_pos) {
@@ -29,25 +19,53 @@ void Camera::setCamDir(float yaw, float pitch) {
     this->pitch = pitch;
 }
 
-void Camera::setProjCfg(float fov, float near, float far) {
-    this->fov = fov;
-    this->near = near;
-    this->far = far;
+void Camera::setProjCfg(float fov) {
+    this->fov = fov; 
 }
 
 void Camera::update() {
-    cameraPos = glm::vec3(position.x, position.y, position.z);
-   
-    cameraDir = glm::vec3(
-                cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-                sin(glm::radians(pitch)), 
-                sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-                );
+    camPos = glm::vec3(position.x, position.y, position.z);
+    glm::vec3 worldUp = glm::vec3(up.x, up.y, up.z);
 
-    cameraDir = glm::normalize(cameraDir);
+    float focalLength = 1.0;
+    float theta = glm::radians(fov);
+    float h = std::tan(theta / 2.0f);
+    float viewportHeight = 2 * h * focalLength;
+    float viewportWidth = viewportHeight * aspectRatio;
+        
+    glm::vec3 forward = glm::vec3(
+            cos(pitch) * cos(yaw),
+            sin(pitch),
+            cos(pitch) * sin(yaw));
 
-    cameraUp = glm::vec3(up.x, up.y, up.z);
+    glm::vec3 w = -forward;
+    glm::vec3 u = glm::normalize(glm::cross(worldUp, w));
+    glm::vec3 v = glm::cross(w, u);
 
-    view = glm::lookAt(cameraPos, cameraPos + cameraDir, cameraUp);
-    proj = glm::perspective(glm::radians(fov), 800.0f / 600.0f, near, far);
+    glm::vec3 viewportU = viewportWidth * u;
+    glm::vec3 viewportV = viewportHeight * v;
+
+    delu = viewportU / width;
+    delv = viewportV / height;
+    
+    glm::vec3 bottomLeft = camPos - w * focalLength 
+        - viewportU * 0.5f - viewportV * 0.5f;
+    topLeftPix = bottomLeft + 0.5f * delu + 0.5f * delv;
+
+}
+
+void Camera::updateParams(unsigned int ID) { 
+    int loc;
+
+    loc = glGetUniformLocation(ID, "center");
+    glUniform3fv(loc, 1, glm::value_ptr(camPos));
+    
+    loc = glGetUniformLocation(ID, "pixel00Loc");
+    glUniform3fv(loc, 1, glm::value_ptr(topLeftPix));
+    
+    loc = glGetUniformLocation(ID, "pixelDeltaU");
+    glUniform3fv(loc, 1, glm::value_ptr(delu));
+
+    loc = glGetUniformLocation(ID, "pixelDeltaV");
+    glUniform3fv(loc, 1, glm::value_ptr(delv));
 }

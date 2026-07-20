@@ -14,35 +14,36 @@ struct CamConfig {
     float yaw;
     float pitch;
     float fov;
-    float near;
-    float far;
+    float width;
+    float height;
 };
 
 class Camera {
   private:
     Vec3 position;
     Vec3 up;
+    
     float yaw;
     float pitch;
     float fov;
-    float near;
-    float far;
     
-    glm::vec3 cameraPos;
-    glm::vec3 cameraDir; 
-    glm::vec3 cameraUp;
-
-    glm::mat4 view;
-    glm::mat4 proj;
+    float width;
+    float height;
+    float aspectRatio;
+   
+    glm::vec3 camPos;
+    glm::vec3 topLeftPix;
+    glm::vec3 delu;
+    glm::vec3 delv;
 
   public:
     Camera(CamConfig &config);
-    void setView(Shader &shader);
-    void setProj(Shader &shader);
     void setCamPos(Vec3 &cam_pos);
     void setCamDir(float yaw, float pitch);
-    void setProjCfg(float fov, float near, float far);
+    void setProjCfg(float fov);
+
     void update();
+    void updateParams(unsigned int ID);
 };
 
 #endif

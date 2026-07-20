@@ -10,6 +10,7 @@
 
 #include "shader.hpp"
 #include "compute.hpp"
+#include "camera.hpp"
 
 class Renderer {
     private:
@@ -25,11 +26,13 @@ class Renderer {
 
         GLFWwindow *window;
         ImGuiIO io;
+        
+        Camera &camera;
 
         void createScreenQuad();
         void renderQuad();
     public:
-        Renderer(unsigned int width, unsigned int height);
+        Renderer(unsigned int width, unsigned int height, Camera &camera);
         ~Renderer();
         
         void loadShaders(Shader &shader, ComputeShader &computeShader);
