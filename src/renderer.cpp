@@ -73,7 +73,7 @@ void Renderer::createScreenQuad() {
 
     computeShader->use();
 
-    glDispatchCompute(width, height, 1);
+    glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
@@ -111,6 +111,7 @@ void Renderer::renderQuad() {
 void Renderer::runRenderLoop() {
     createScreenQuad();
     bool camWindow = true;
+    bool pbrWindow = true;
     
     CamConfig tempCfg = {
         {0, 0, 0},
@@ -122,6 +123,9 @@ void Renderer::runRenderLoop() {
         600.0f
     };
 
+    float metallic = 0.25f;
+    float roughness = 0.25f;
+
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
          
@@ -132,7 +136,7 @@ void Renderer::runRenderLoop() {
         camera.update();
         computeShader->use();
         camera.updateParams(computeShader->ID);
-        glDispatchCompute(width, height, 1);
+        glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
@@ -159,6 +163,22 @@ void Renderer::runRenderLoop() {
 
             ImGui::End();
         }
+    
+        if (pbrWindow) {
+            bool metUpdate = false;
+            bool rghUpdate = false;
+
+            ImGui::Begin("PBR", &pbrWindow);
+            
+            metUpdate |= ImGui::SliderFloat("metallic", &metallic, 0.0f, 1.0f);
+            rghUpdate |= ImGui::SliderFloat("roughness", &roughness, 0.0f, 1.0f);
+
+            computeShader->use();
+            if (metUpdate) computeShader->setFloat("metallic", metallic);
+            if (rghUpdate) computeShader->setFloat("roughness", roughness);
+
+            ImGui::End();
+        }    
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

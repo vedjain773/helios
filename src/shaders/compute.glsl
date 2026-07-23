@@ -1,6 +1,6 @@
 #version 450 core
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 
 const float PI = 3.14159265359;
@@ -9,6 +9,9 @@ uniform vec3 center;      //= vec3(0.0, 0.0, 0.0);
 uniform vec3 pixel00Loc;  //= vec3(-0.551594, -0.413523, -1.0);
 uniform vec3 pixelDeltaU; //= vec3(0.00138071, 0.0, 0.0);
 uniform vec3 pixelDeltaV; //= vec3(0.0, 0.00138071, 0.0);
+
+uniform float metallic;
+uniform float roughness;
 
 vec3 lightPos = vec3(1, 1, 1);
 
@@ -72,19 +75,19 @@ vec3 FresnelSchlick(vec3 h, vec3 v, vec3 F0) {
     return F0 + (1 - F0) * pow(clamp(1 - hDotv, 0.0, 1.0), 5.0);
 }
 
-vec3 fSpecular(vec3 h, vec3 w_o, vec3 w_i, vec3 n, float alphaSq, vec3 F0) {
+vec3 fSpecular(vec3 h, vec3 w_o, vec3 w_i, vec3 n, float alphaSq, vec3 F) {
     float nDotw_o = max(dot(n, w_o), 0.0);
     float nDotw_i = max(dot(n, w_i), 0.0);
     
     float D = DistributionGGX(n, h, alphaSq);
     float G = GeometrySmith(nDotw_o, nDotw_i, alphaSq);
-    vec3 F = FresnelSchlick(h, w_o, F0);
 
     return (D * G * F) / (4 * nDotw_o * nDotw_i + 1e-3);
 }
 
-vec3 fDiffuse(vec3 albedo, float metallic) {
-    float kD = 1 - metallic;
+vec3 fDiffuse(vec3 albedo, vec3 F, float metallic) {
+    vec3 kD = 1 - F;
+    kD *= 1 - metallic;
     
     return albedo * kD / PI; 
 }
@@ -95,8 +98,10 @@ vec3 fTotal(vec3 h, vec3 w_o, vec3 w_i, vec3 n, vec3 F0, Material mat) {
     float alpha = mat.roughness * mat.roughness;
     float alphaSq = alpha * alpha;
 
-    vec3 fspec = fSpecular(h, w_o, w_i, n, alphaSq, F0);
-    vec3 fdiff = fDiffuse(albedo, metallic);
+    vec3 F = FresnelSchlick(h, w_o, F0);
+
+    vec3 fspec = fSpecular(h, w_o, w_i, n, alphaSq, F);
+    vec3 fdiff = fDiffuse(albedo, F, metallic);
 
     return fspec + fdiff;
 }
@@ -138,7 +143,7 @@ Sphere sph1 = Sphere(vec3(0.0, 0.0, -1.0), 0.5);
 
 vec3 getColor(Ray ray) {
     HitRecord hitr;
-    Material mat1 = Material(vec3(1.0, 0.0, 0.0), 0.25, 0.50); 
+    Material mat1 = Material(vec3(1.0, 0.0, 0.0), metallic, roughness); 
     
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, mat1.albedo, mat1.metallic);
