@@ -21,8 +21,8 @@ int main() {
     renderer.initImgui(); 
 
     Shader shader("../src/shaders/vertex.glsl", "../src/shaders/fragment.glsl");
-    ComputeShader compShader("../src/shaders/compute.glsl");  
-    
+    ComputeShader compShader("../src/shaders/compute.glsl");   
+
     renderer.loadShaders(shader, compShader);
     renderer.runRenderLoop();
     return 0;
