@@ -147,15 +147,13 @@ void Renderer::runRenderLoop() {
 
             ImGui::Begin("Camera", &camWindow);
 
-            posUpdate |= ImGui::SliderFloat("x", &tempCfg.position.x, 0.0f, 10.0f);
-            posUpdate |= ImGui::SliderFloat("y", &tempCfg.position.y, 0.0f, 10.0f); 
-            posUpdate |= ImGui::SliderFloat("z", &tempCfg.position.z, 0.0f, 10.0f); 
+            posUpdate |= ImGui::SliderFloat("x", &tempCfg.position.x, -10.0f, 10.0f);
+            posUpdate |= ImGui::SliderFloat("y", &tempCfg.position.y, -10.0f, 10.0f); 
+            posUpdate |= ImGui::SliderFloat("z", &tempCfg.position.z, -10.0f, 10.0f); 
             
             eulerUpdate |= ImGui::SliderFloat("yaw", &tempCfg.yaw, -180.0f, 180.0f);
             eulerUpdate |= ImGui::SliderFloat("pitch", &tempCfg.pitch, -89.9f, 89.9f);
     
-            ImGui::Text("[%.1f FPS]", io.Framerate);
-
             if (posUpdate) camera.setCamPos(tempCfg.position);
             if (eulerUpdate) camera.setCamDir(tempCfg.yaw, tempCfg.pitch);
 
