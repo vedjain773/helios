@@ -30,6 +30,7 @@ struct HitRecord {
     vec3 point;
     vec3 normal;
     float t;
+    int matId;
 };
 
 struct Interval {
@@ -40,6 +41,7 @@ struct Interval {
 struct Sphere {
     vec3 center;
     float radius;
+    int matId;
 };
 
 // PBR Utils
@@ -106,6 +108,17 @@ vec3 fTotal(vec3 h, vec3 w_o, vec3 w_i, vec3 n, vec3 F0, Material mat) {
     return fspec + fdiff;
 }
 
+uint pcg_hash(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+float rand(inout uint seed) {
+    seed = pcg_hash(seed);
+    return float(seed) / 4294967295.0;
+}
+
 bool isInsideInterval(Interval interval, float t) {
     return t <= interval.tmax && t >= interval.tmin;
 }
@@ -135,21 +148,44 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
     hitr.t = root;
     hitr.point = ray.source + root * ray.direction;
     hitr.normal = (hitr.point - center) / radius;
+    hitr.matId = sphere.matId;
 
     return true;
 }
 
-Sphere sph1 = Sphere(vec3(0.0, 0.0, -1.0), 0.5);
+Sphere arr[2] = Sphere[2](
+        Sphere(vec3(0.0, 0.0, -1.0), 0.5, 0),
+        Sphere(vec3(0.0, -100.5, -1.0), 100, 1));
 
-vec3 getColor(Ray ray) {
+Material mat[2] = Material[2](
+        Material(vec3(1.0, 0.0, 0.0), metallic, roughness),
+        Material(vec3(0.0, 1.0, 0.0), 0.25, 0.25));
+
+bool closestHit(Ray ray, Interval interval, inout HitRecord hitr) {
+    bool hasHit = false;
+    float closestT = interval.tmax;
+
+    for (int i = 0; i < arr.length(); i++) {
+        if (hitSphere(arr[i], ray, interval, hitr)) {
+            hasHit = true;
+            closestT = hitr.t;
+
+            interval.tmax = closestT;
+        }
+    }
+
+    return hasHit;
+}
+
+vec3 traceRay(Ray ray) {
     HitRecord hitr;
-    Material mat1 = Material(vec3(1.0, 0.0, 0.0), metallic, roughness); 
+    vec3 radiance = vec3(1.0);
     
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, mat1.albedo, mat1.metallic);
-    vec3 radiance = vec3(5.0);
-    
-    if (hitSphere(sph1, ray, Interval(0.0, 1000.0), hitr)) {
+    if (closestHit(ray, Interval(0.0, 1000.0), hitr)) {
+        Material matr = mat[hitr.matId];
+        vec3 F0 = vec3(0.04);
+        F0 = mix(F0, matr.albedo, matr.metallic);
+
         vec3 n = hitr.normal;
         vec3 w_o = normalize(center - hitr.point);
         vec3 w_i = normalize(lightPos - hitr.point);
@@ -158,15 +194,15 @@ vec3 getColor(Ray ray) {
         
         vec3 h = normalize(w_o + w_i);
 
-        vec3 color = fTotal(h, w_o, w_i, n, F0, mat1) * radiance * nDotw_i;
+        vec3 color = fTotal(h, w_o, w_i, n, F0, matr) * radiance * nDotw_i;
         
         color = color / (color + vec3(1.0));
         color = pow(color, vec3(1.0 / 2.2));
 
         return color;
-    }
+    } 
 
-    return vec3(0.0, 0.0, 0.0); 
+    return vec3(0, 0, 0);
 }
 
 Ray genRay(ivec2 pixel) {
@@ -184,7 +220,7 @@ void main() {
     ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
    
     Ray ray = genRay(texelCoord);
-    value.xyz = getColor(ray); 
+    value.xyz = traceRay(ray); 
 
     imageStore(imgOutput, texelCoord, value);
 }
