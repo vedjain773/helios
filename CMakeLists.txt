@@ -39,6 +39,7 @@ add_executable(helios
     src/compute.cpp
     src/camera.cpp
     src/renderer.cpp
+    src/scene.cpp
 )
 
 target_include_directories(helios

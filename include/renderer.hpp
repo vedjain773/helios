@@ -11,34 +11,41 @@
 #include "shader.hpp"
 #include "compute.hpp"
 #include "camera.hpp"
+#include "scene.hpp"
 
 class Renderer {
-    private:
-        unsigned int width;
-        unsigned int height;
+  private:
+    unsigned int width;
+    unsigned int height;
         
-        unsigned int texture;
-        unsigned int quadVAO = 0;
-        unsigned int quadVBO;
+    unsigned int texture;
+    unsigned int quadVAO = 0;
+    unsigned int quadVBO;
+    unsigned int ssbo;
+    unsigned int mbo;
         
-        Shader *shader;
-        ComputeShader *computeShader;
+    Shader *shader;
+    ComputeShader *computeShader;
 
-        GLFWwindow *window;
-        ImGuiIO io;
+    GLFWwindow *window;
+    ImGuiIO io;
         
-        Camera &camera;
+    Camera &camera;
+    Scene &scene;
 
-        void createScreenQuad();
-        void renderQuad();
-    public:
-        Renderer(unsigned int width, unsigned int height, Camera &camera);
-        ~Renderer();
+    void createScreenQuad();
+    void renderQuad();
+    void initScene();
+    void updateScene(int index);
+
+  public:
+    Renderer(unsigned int width, unsigned int height, Camera &camera, Scene &scene);
+    ~Renderer();
         
-        void loadShaders(Shader &shader, ComputeShader &computeShader);
-        int initGLFW();
-        void initImgui(); 
-        void runRenderLoop();
+    void loadShaders(Shader &shader, ComputeShader &computeShader);
+    int initGLFW();
+    void initImgui(); 
+    void runRenderLoop();
 };
 
 void framebufferSizeCallBack(GLFWwindow *window, int width, int height);

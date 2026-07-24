@@ -16,7 +16,20 @@ int main() {
     };
 
     Camera camera(cfg);
-    Renderer renderer(800, 600, camera);
+
+    Sphere sp1 = {{0, 0, -1}, 0.5, 0};
+    Sphere sp2 = {{0, -100.5, -1}, 100.0, 1};
+    Material mat1 = {{1.0, 0.0, 0.0}, 0.25, 0.25};
+    Material mat2 = {{0.0, 1.0, 0.0}, 0.25, 0.25};
+    
+    Scene scene;
+    scene.addSphere(sp1);
+    scene.addSphere(sp2);
+
+    scene.addMaterial(mat1);
+    scene.addMaterial(mat2);
+        
+    Renderer renderer(800, 600, camera, scene);
     renderer.initGLFW();
     renderer.initImgui(); 
 

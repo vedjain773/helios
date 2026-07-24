@@ -1,12 +1,13 @@
 #include "renderer.hpp"
+#include "shapes.hpp"
 #include <iostream>
 
 void framebufferSizeCallBack(GLFWwindow *window, int nwidth, int nheight) {
     glViewport(0, 0, nwidth, nheight); 
 }
 
-Renderer::Renderer(unsigned int width, unsigned int height, Camera &camera)
-    :width(width), height(height), camera(camera) {}
+Renderer::Renderer(unsigned int width, unsigned int height, Camera &camera, Scene &scene)
+    :width(width), height(height), camera(camera), scene(scene) {}
 
 int Renderer::initGLFW() {
     glfwInit();
@@ -77,6 +78,29 @@ void Renderer::createScreenQuad() {
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
+void Renderer::initScene() {  
+    glGenBuffers(1, &ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.spheres.size() * sizeof(GPUSphere),
+            scene.spheres.data(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
+
+    glGenBuffers(1, &mbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.materials.size() * sizeof(GPUMaterial),
+            scene.materials.data(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mbo);
+}
+
+void Renderer::updateScene(int index) {
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mbo);
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER,
+                index * sizeof(GPUMaterial),
+                sizeof(GPUMaterial),
+                &scene.materials[index]
+            );
+}
+
 void Renderer::renderQuad() {
     if (quadVAO == 0) {
         float quadVertices[] = {
@@ -110,6 +134,10 @@ void Renderer::renderQuad() {
 
 void Renderer::runRenderLoop() {
     createScreenQuad();
+    initScene();
+    
+    int matSize = scene.materials.size();
+
     bool camWindow = true;
     bool pbrWindow = true;
     
@@ -121,10 +149,7 @@ void Renderer::runRenderLoop() {
         45.0f,
         800.0f,
         600.0f
-    };
-
-    float metallic = 0.25f;
-    float roughness = 0.25f;
+    }; 
 
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
@@ -162,23 +187,30 @@ void Renderer::runRenderLoop() {
             if (eulerUpdate) camera.setCamDir(tempCfg.yaw, tempCfg.pitch);
 
             ImGui::End();
-        }
-    
+        } 
+
         if (pbrWindow) {
-            bool metUpdate = false;
-            bool rghUpdate = false;
-
             ImGui::Begin("PBR", &pbrWindow);
-            
-            metUpdate |= ImGui::SliderFloat("metallic", &metallic, 0.0f, 1.0f);
-            rghUpdate |= ImGui::SliderFloat("roughness", &roughness, 0.0f, 1.0f);
+            for (int i = 0; i < matSize; i++) {
+                bool metUpdate = false;
+                bool rghUpdate = false;
+                ImGui::PushID(i);
 
-            computeShader->use();
-            if (metUpdate) computeShader->setFloat("metallic", metallic);
-            if (rghUpdate) computeShader->setFloat("roughness", roughness);
+                metUpdate |= ImGui::SliderFloat("metallic",
+                         &scene.cpuMaterials[i].metallic, 0.00f, 1.00f);
+                rghUpdate |= ImGui::SliderFloat("roughness", 
+                         &scene.cpuMaterials[i].roughness, 0.00f, 1.00f);
+                ImGui::Separator();
 
+                if (metUpdate || rghUpdate) {
+                    scene.update(i);
+                    updateScene(i);
+                }
+
+                ImGui::PopID();
+            }
             ImGui::End();
-        }    
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

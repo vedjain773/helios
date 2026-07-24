@@ -10,9 +10,6 @@ uniform vec3 pixel00Loc;  //= vec3(-0.551594, -0.413523, -1.0);
 uniform vec3 pixelDeltaU; //= vec3(0.00138071, 0.0, 0.0);
 uniform vec3 pixelDeltaV; //= vec3(0.0, 0.00138071, 0.0);
 
-uniform float metallic;
-uniform float roughness;
-
 vec3 lightPos = vec3(1, 1, 1);
 
 struct Ray {
@@ -43,6 +40,9 @@ struct Sphere {
     float radius;
     int matId;
 };
+
+layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
+layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
 
 // PBR Utils
 float DistributionGGX(vec3 n, vec3 h, float alphaSq) {
@@ -153,20 +153,12 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
     return true;
 }
 
-Sphere arr[2] = Sphere[2](
-        Sphere(vec3(0.0, 0.0, -1.0), 0.5, 0),
-        Sphere(vec3(0.0, -100.5, -1.0), 100, 1));
-
-Material mat[2] = Material[2](
-        Material(vec3(1.0, 0.0, 0.0), metallic, roughness),
-        Material(vec3(0.0, 1.0, 0.0), 0.25, 0.25));
-
 bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
     bool hasHit = false;
     float closestT = interval.tmax;
 
-    for (int i = 0; i < arr.length(); i++) {
-        if (hitSphere(arr[i], ray, interval, hitr)) {
+    for (int i = 0; i < spheres.length(); i++) {
+        if (hitSphere(spheres[i], ray, interval, hitr)) {
             hasHit = true;
             closestT = hitr.t;
 
@@ -181,8 +173,8 @@ bool anyHit(Ray ray) {
     HitRecord hitr;
     Interval interval = Interval(0.001, 1.0);
 
-    for (int i = 0; i < arr.length(); i++) {
-        if (hitSphere(arr[i], ray, interval, hitr)) 
+    for (int i = 0; i < spheres.length(); i++) {
+        if (hitSphere(spheres[i], ray, interval, hitr)) 
             return true;
     }
 
@@ -194,7 +186,7 @@ vec3 closestHit(Ray ray) {
     vec3 radiance = vec3(1.0);
     
     if (traceRay(ray, Interval(0.0, 1000.0), hitr)) {
-        Material matr = mat[hitr.matId];
+        Material matr = materials[hitr.matId];
         vec3 F0 = vec3(0.04);
         F0 = mix(F0, matr.albedo, matr.metallic);
 
