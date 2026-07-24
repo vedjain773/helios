@@ -161,7 +161,7 @@ Material mat[2] = Material[2](
         Material(vec3(1.0, 0.0, 0.0), metallic, roughness),
         Material(vec3(0.0, 1.0, 0.0), 0.25, 0.25));
 
-bool closestHit(Ray ray, Interval interval, inout HitRecord hitr) {
+bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
     bool hasHit = false;
     float closestT = interval.tmax;
 
@@ -177,11 +177,23 @@ bool closestHit(Ray ray, Interval interval, inout HitRecord hitr) {
     return hasHit;
 }
 
-vec3 traceRay(Ray ray) {
+bool anyHit(Ray ray) {
+    HitRecord hitr;
+    Interval interval = Interval(0.001, 1.0);
+
+    for (int i = 0; i < arr.length(); i++) {
+        if (hitSphere(arr[i], ray, interval, hitr)) 
+            return true;
+    }
+
+    return false;
+}
+
+vec3 closestHit(Ray ray) {
     HitRecord hitr;
     vec3 radiance = vec3(1.0);
     
-    if (closestHit(ray, Interval(0.0, 1000.0), hitr)) {
+    if (traceRay(ray, Interval(0.0, 1000.0), hitr)) {
         Material matr = mat[hitr.matId];
         vec3 F0 = vec3(0.04);
         F0 = mix(F0, matr.albedo, matr.metallic);
@@ -198,11 +210,17 @@ vec3 traceRay(Ray ray) {
         
         color = color / (color + vec3(1.0));
         color = pow(color, vec3(1.0 / 2.2));
+       
+        Ray sray = Ray(hitr.point + 0.001 * hitr.normal, lightPos - hitr.point);
+
+        if (anyHit(sray)) {
+            return vec3(0.0);
+        }
 
         return color;
     } 
 
-    return vec3(0, 0, 0);
+    return vec3(0.0);
 }
 
 Ray genRay(ivec2 pixel) {
@@ -220,7 +238,7 @@ void main() {
     ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
    
     Ray ray = genRay(texelCoord);
-    value.xyz = traceRay(ray); 
+    value.xyz = closestHit(ray); 
 
     imageStore(imgOutput, texelCoord, value);
 }
