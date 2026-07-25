@@ -19,6 +19,7 @@ class Renderer {
     unsigned int height;
         
     unsigned int texture;
+    unsigned int accTexture;
     unsigned int quadVAO = 0;
     unsigned int quadVBO;
     unsigned int ssbo;

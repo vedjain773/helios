@@ -71,11 +71,18 @@ void Renderer::createScreenQuad() {
             GL_FLOAT, NULL);
 
     glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        
+    glGenTextures(1, &accTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, accTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, 
+            GL_FLOAT, NULL);
 
-    computeShader->use();
-
-    glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    glBindImageTexture(3, accTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
 
 void Renderer::initScene() {  
@@ -133,11 +140,11 @@ void Renderer::renderQuad() {
 
 
 void Renderer::runRenderLoop() {
-    createScreenQuad();
     initScene();
+    createScreenQuad();
     
     int matSize = scene.materials.size();
-
+    int count = 0;
     bool camWindow = true;
     bool pbrWindow = true;
     
@@ -160,6 +167,7 @@ void Renderer::runRenderLoop() {
           
         camera.update();
         computeShader->use();
+        computeShader->setInt("frameCounter", count++);
         camera.updateParams(computeShader->ID);
         glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -169,7 +177,7 @@ void Renderer::runRenderLoop() {
         shader->setInt("tex", 0);
         glBindTexture(GL_TEXTURE_2D, texture);
         renderQuad();
-        
+
         if (camWindow) {
             bool posUpdate = false;
             bool eulerUpdate = false;
@@ -185,6 +193,8 @@ void Renderer::runRenderLoop() {
     
             if (posUpdate) camera.setCamPos(tempCfg.position);
             if (eulerUpdate) camera.setCamDir(tempCfg.yaw, tempCfg.pitch);
+           
+            if (posUpdate || eulerUpdate) count = 0;
 
             ImGui::End();
         } 
@@ -205,6 +215,7 @@ void Renderer::runRenderLoop() {
                 if (metUpdate || rghUpdate) {
                     scene.update(i);
                     updateScene(i);
+                    count = 0;
                 }
 
                 ImGui::PopID();
@@ -221,7 +232,7 @@ void Renderer::runRenderLoop() {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         } 
-        
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
