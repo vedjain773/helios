@@ -25,12 +25,15 @@ struct Material {
     vec3 albedo;
     float metallic;
     float roughness;
+    float ior;
+    int transmissive;
 };
 
 struct HitRecord {
     vec3 point;
     vec3 normal;
     float t;
+    bool frontFace;
     int matId;
 };
 
@@ -153,6 +156,13 @@ vec3 FresnelSchlick(vec3 h, vec3 v, vec3 F0) {
     return F0 + (1 - F0) * pow(clamp(1 - hDotv, 0.0, 1.0), 5.0);
 }
 
+float FresnelSchlickT(float cosTheta, float ior) {
+    float r0 = (1 - ior) / (1 + ior);
+    r0 = r0 * r0;
+
+    return r0 + (1 - r0) * pow(1 - cosTheta, 5);
+}
+
 vec3 fSpecular(vec3 h, vec3 w_o, vec3 w_i, vec3 n, float alphaSq, vec3 F) {
     float nDotw_o = max(dot(n, w_o), 0.0);
     float nDotw_i = max(dot(n, w_i), 0.0);
@@ -229,10 +239,36 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
 
     hitr.t = root;
     hitr.point = ray.source + root * ray.direction;
-    hitr.normal = (hitr.point - center) / radius;
+    vec3 outNormal = (hitr.point - center) / radius;
+
+    if (dot(outNormal, ray.direction) > 0.0) {
+        hitr.normal = -outNormal;
+        hitr.frontFace = false;
+    } else {
+        hitr.normal = outNormal;
+        hitr.frontFace = true; 
+    }
+
     hitr.matId = sphere.matId;
 
     return true;
+}
+
+Ray handleDielectric(Ray ray, Material matr, HitRecord hitr, ivec2 texelCoord) {
+    vec3 n = hitr.normal;
+    float ri = hitr.frontFace ? matr.ior : 1 / matr.ior;
+
+    vec3 unitDir = normalize(ray.direction);
+    float cosTheta = min(dot(-unitDir, n), 1.0);
+    float sinTheta = sqrt(1 - cosTheta * cosTheta);
+
+    bool cannotRefract = ri * sinTheta > 1.0;
+
+    bool didReflect = cannotRefract ||
+        (randTex(texelCoord, 8645) > FresnelSchlickT(cosTheta, ri));
+    vec3 direction = didReflect ? reflect(unitDir, n) : refract(unitDir, n, ri);
+
+    return Ray(hitr.point + 1e-3 * n, direction);
 }
 
 bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
@@ -256,8 +292,10 @@ bool anyHit(Ray ray) {
     Interval interval = Interval(0.001, 1.0);
 
     for (int i = 0; i < spheres.length(); i++) {
-        if (hitSphere(spheres[i], ray, interval, hitr)) 
-            return true;
+        if (hitSphere(spheres[i], ray, interval, hitr)) {
+            Material matr = materials[hitr.matId];
+            if (matr.transmissive != 1) return true; 
+        } 
     }
 
     return false;
@@ -275,10 +313,17 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
 
         if (traceRay(initRay, Interval(0.0, 1000.0), hitr)) {
             Material matr = materials[hitr.matId];
+            vec3 n = hitr.normal;
+
+            if (matr.transmissive == 1) {
+                initRay = handleDielectric(initRay, matr, hitr, texelCoord);
+                throughput *= 1.0;
+                continue; 
+            }
+
             vec3 F0 = vec3(0.04);
             F0 = mix(F0, matr.albedo, matr.metallic);
     
-            vec3 n = hitr.normal;
             vec3 w_o = -normalize(initRay.direction);
             vec3 w_i = normalize(lightPos - hitr.point);
 
@@ -304,7 +349,7 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
             nDotw_i = max(dot(n, w_i), 0.0);
 
             throughput *= fTotal(h, w_o, w_i, n, F, matr) * nDotw_i / pdf_total;
-            initRay = Ray(hitr.point + 0.01 * n, w_i); 
+            initRay = Ray(hitr.point + 1e-3 * n, w_i); 
 
         } else {
             radiance += throughput * missColor;

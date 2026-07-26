@@ -63,8 +63,6 @@ void Renderer::createScreenQuad() {
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, 
@@ -75,8 +73,6 @@ void Renderer::createScreenQuad() {
     glGenTextures(1, &accTexture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, accTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, 
@@ -101,11 +97,8 @@ void Renderer::initScene() {
 
 void Renderer::updateScene(int index) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, mbo);
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER,
-                index * sizeof(GPUMaterial),
-                sizeof(GPUMaterial),
-                &scene.materials[index]
-            );
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, index * sizeof(GPUMaterial),
+                sizeof(GPUMaterial), &scene.materials[index]);
 }
 
 void Renderer::renderQuad() {

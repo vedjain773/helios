@@ -9,7 +9,9 @@
 struct Material {
     Vec3 albedo;
     float metallic;
-    float roughness; 
+    float roughness;
+    float ior;
+    int transmissive;
 };
 
 struct Sphere {
@@ -32,9 +34,8 @@ struct GPUMaterial {
     glm::vec3 albedo;
     float metallic;
     float roughness;
-
-    float _pad0 = 0.0;
-    float _pad1 = 0.0;
+    float ior;
+    int transmissive;
     float _pad2 = 0.0;
 };
 

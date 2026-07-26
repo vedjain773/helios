@@ -17,17 +17,22 @@ int main() {
 
     Camera camera(cfg);
 
-    Sphere sp1 = {{0, 0, -1}, 0.5, 0};
-    Sphere sp2 = {{0, -100.5, -1}, 100.0, 1};
-    Material mat1 = {{0.752, 0.752, 0.752}, 0.25, 0.25};
-    Material mat2 = {{0.0, 1.0, 0.0}, 0.25, 0.25};
+    Sphere sp_gl = {{-0.5, 0, -1}, 0.5, 0};
+    Sphere sp_r = {{0.5, 0, -1}, 0.5, 1};
+    Sphere sp_gr = {{0, -100.5, -1}, 100.0, 2};
+
+    Material mat_gl = {{0.752, 0.752, 0.752}, 0.25, 0.25, 1.33, 1};
+    Material mat_r = {{1.0, 0.0, 0.0}, 0.25, 0.25, 0.00, 0};
+    Material mat_gr = {{0.0, 1.0, 0.0}, 0.25, 0.25, 0.00, 0};
     
     Scene scene;
-    scene.addSphere(sp1);
-    scene.addSphere(sp2);
+    scene.addSphere(sp_gl);
+    scene.addSphere(sp_r);
+    scene.addSphere(sp_gr);
 
-    scene.addMaterial(mat1);
-    scene.addMaterial(mat2);
+    scene.addMaterial(mat_gl);
+    scene.addMaterial(mat_r);
+    scene.addMaterial(mat_gr);
         
     Renderer renderer(800, 600, camera, scene);
     renderer.initGLFW();

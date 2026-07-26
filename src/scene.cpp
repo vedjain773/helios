@@ -15,6 +15,8 @@ void Scene::addMaterial(Material &material) {
     gpuMaterial.albedo = glm::vec3(material.albedo.x, material.albedo.y, material.albedo.z);
     gpuMaterial.metallic = material.metallic;
     gpuMaterial.roughness = material.roughness;
+    gpuMaterial.ior = material.ior;
+    gpuMaterial.transmissive = material.transmissive;
 
     materials.push_back(gpuMaterial);
     cpuMaterials.emplace_back(material);
@@ -27,4 +29,6 @@ void Scene::update(int index) {
     target.albedo = glm::vec3(material.albedo.x, material.albedo.y, material.albedo.z);
     target.metallic = material.metallic;
     target.roughness = material.roughness;
+    target.ior = material.ior;
+    target.transmissive = material.transmissive;
 } 
