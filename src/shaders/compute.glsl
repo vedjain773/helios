@@ -6,10 +6,10 @@ layout(rgba32f, binding = 3) uniform image2D accumBuffer;
 
 const float PI = 3.14159265359;
 
-uniform vec3 center;      //= vec3(0.0, 0.0, 0.0);
-uniform vec3 pixel00Loc;  //= vec3(-0.551594, -0.413523, -1.0);
-uniform vec3 pixelDeltaU; //= vec3(0.00138071, 0.0, 0.0);
-uniform vec3 pixelDeltaV; //= vec3(0.0, 0.00138071, 0.0);
+uniform vec3 center;
+uniform vec3 pixel00Loc;
+uniform vec3 pixelDeltaU;
+uniform vec3 pixelDeltaV;
 
 uniform int frameCounter;
 
@@ -45,6 +45,12 @@ struct Sphere {
     int matId;
 };
 
+struct BSDFSample {
+    vec3 w_i;
+    float pdf_diff;
+    float pdf_spec;
+};
+
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
 
@@ -66,12 +72,17 @@ float rand(inout uint seed) {
     return float(seed) / 4294967295.0;
 }
 
-vec3 SamplingSpecGGX(float alpha, vec3 n, vec3 w_o, ivec2 texelCoord, inout vec3 h) {
+float randTex(ivec2 texelCoord, int offset) {
     uint seed = pcg_hash(uint(texelCoord.x)) 
-        ^ pcg_hash(uint(texelCoord.y) * 9781u) + uint(frameCounter);
-    uint seed2 = seed + 589;
-    float u1 = rand(seed);
-    float u2 = rand(seed2);
+              ^ pcg_hash(uint(texelCoord.y) * 9781u)
+              ^ pcg_hash(uint(frameCounter) * 6271u)
+              ^ pcg_hash(uint(offset) * 26699u);
+    return rand(seed);
+}
+
+vec3 SamplingSpecGGX(float alpha, vec3 n, vec3 w_o, ivec2 texelCoord, inout vec3 h) { 
+    float u1 = randTex(texelCoord, 0);
+    float u2 = randTex(texelCoord, 8795);
 
     float theta = atan(alpha * sqrt(u1) / sqrt(1 - u1));
     float phi = 2 * PI * u2;
@@ -87,11 +98,8 @@ vec3 SamplingSpecGGX(float alpha, vec3 n, vec3 w_o, ivec2 texelCoord, inout vec3
 }
 
 vec3 SamplingDiffGGX(vec3 n, vec3 w_o, ivec2 texelCoord) {
-    uint seed = pcg_hash(uint(texelCoord.x)) 
-        ^ pcg_hash(uint(texelCoord.y) * 9781u) + uint(frameCounter);
-    uint seed2 = seed + 589;
-    float u1 = rand(seed);
-    float u2 = rand(seed2);
+    float u1 = randTex(texelCoord, 0);
+    float u2 = randTex(texelCoord, 2795);
 
     float phi = 2 * PI * u2;
     
@@ -172,6 +180,25 @@ vec3 fTotal(vec3 h, vec3 w_o, vec3 w_i, vec3 n, vec3 F, Material mat) {
     vec3 fdiff = fDiffuse(albedo, F, metallic);
 
     return fspec + fdiff;
+}
+
+BSDFSample SampleBSDF(Material matr, ivec2 texelCoord, vec3 F, vec3 n, vec3 w_o) {
+    float alpha = matr.roughness * matr.roughness;
+    float p_spec = F.x; 
+
+    float u1 = randTex(texelCoord, 12658);
+
+    vec3 nh;
+    vec3 w_ispec = SamplingSpecGGX(alpha, n, w_o, texelCoord, nh);
+    float pdf_spec = p_spec * pdfSpec(
+            DistributionGGX(n, nh, alpha * alpha),
+            nh, w_o, n);
+
+    vec3 w_idiff = SamplingDiffGGX(n, w_o, texelCoord);
+    float pdf_diff = (1 - p_spec) * pdfDiff(n, w_idiff);
+
+    vec3 w_i = u1 > p_spec ? w_ispec : w_idiff; 
+    return BSDFSample(w_i, pdf_diff, pdf_spec);
 }
 
 bool isInsideInterval(Interval interval, float t) {
@@ -265,30 +292,18 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
             if (!anyHit(sray)) {
                 radiance += throughput * direct;
             }
-            
-            float p_spec = F.x; 
+           
+            BSDFSample bsdf_sample = SampleBSDF(matr, texelCoord, F, n, w_o);
+            w_i = bsdf_sample.w_i;
+            float pdf_spec = bsdf_sample.pdf_spec;
+            float pdf_diff = bsdf_sample.pdf_diff;
+            float pdf_total = pdf_spec + pdf_diff;
 
-            uint seed = pcg_hash(uint(texelCoord.x)) 
-                ^ pcg_hash(uint(texelCoord.y) * 5428u) + uint(frameCounter);
-            float u1 = rand(seed); 
-            
-            vec3 nh;
-            vec3 w_ispec = SamplingSpecGGX(matr.roughness * matr.roughness, n,
-                    w_o, texelCoord, nh);
-
-            float pdf_spec = p_spec * pdfSpec(
-                    DistributionGGX(hitr.normal, nh, pow(matr.roughness, 4.0)),
-                    nh, w_o, hitr.normal);
-
-            vec3 w_idiff = SamplingDiffGGX(hitr.normal, w_o, texelCoord);
-            float pdf_diff = (1 - p_spec) * pdfDiff(n, w_idiff);
-            
-            w_i = u1 > p_spec ? w_ispec : w_idiff;
             h = normalize(w_o + w_i);
             F = FresnelSchlick(h, w_o, F0);
             nDotw_i = max(dot(n, w_i), 0.0);
 
-            throughput *= fTotal(h, w_o, w_i, n, F, matr) * nDotw_i / (pdf_spec + pdf_diff);
+            throughput *= fTotal(h, w_o, w_i, n, F, matr) * nDotw_i / pdf_total;
             initRay = Ray(hitr.point + 0.01 * n, w_i); 
 
         } else {
@@ -297,8 +312,6 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
         } 
     }
 
-    //radiance = radiance / (radiance + vec3(1.0));
-    //radiance = pow(radiance, vec3(1.0/ 2.2));
     return radiance;
 }
 
