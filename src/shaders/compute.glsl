@@ -255,20 +255,21 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
 }
 
 Ray handleDielectric(Ray ray, Material matr, HitRecord hitr, ivec2 texelCoord) {
-    vec3 n = hitr.normal;
-    float ri = hitr.frontFace ? matr.ior : 1 / matr.ior;
+    vec3 n = normalize(hitr.normal);
+    float ri = hitr.frontFace ? 1.0 / matr.ior : matr.ior;
 
     vec3 unitDir = normalize(ray.direction);
     float cosTheta = min(dot(-unitDir, n), 1.0);
-    float sinTheta = sqrt(1 - cosTheta * cosTheta);
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
 
     bool cannotRefract = ri * sinTheta > 1.0;
-
     bool didReflect = cannotRefract ||
-        (randTex(texelCoord, 8645) > FresnelSchlickT(cosTheta, ri));
-    vec3 direction = didReflect ? reflect(unitDir, n) : refract(unitDir, n, ri);
+        (randTex(texelCoord, 8645) < FresnelSchlickT(cosTheta, ri));
 
-    return Ray(hitr.point + 1e-3 * n, direction);
+    vec3 direction = didReflect ? reflect(unitDir, n) : refract(unitDir, n, ri);
+    vec3 offsetN = didReflect ? n : -n;
+
+    return Ray(hitr.point + 1e-3 * offsetN, direction);
 }
 
 bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
@@ -307,8 +308,8 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
     vec3 radiance = vec3(0.0);
     vec3 throughput = vec3(1.0);
 
-    vec3 missColor = vec3(0.0, 0.0, 0.0);
-   
+    vec3 missColor = vec3(0.0); 
+
     for (int i = 0; i < MAX_BOUNCES; i++) {
 
         if (traceRay(initRay, Interval(0.0, 1000.0), hitr)) {
