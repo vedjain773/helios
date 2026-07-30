@@ -48,6 +48,11 @@ struct Sphere {
     int matId;
 };
 
+struct Triangle {
+    vec3 a, b, c;
+    int matId;
+};
+
 struct BSDFSample {
     vec3 w_i;
     float pdf_diff;
@@ -56,6 +61,10 @@ struct BSDFSample {
 
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
+
+Triangle triangles[] = Triangle[](
+    Triangle(vec3(-1, 3, -1), vec3(1, 3, -1), vec3(0, 4, -1), 2)
+);
 
 void buildTB(vec3 n, inout vec3 T, inout vec3 B) {
     vec3 nUp = abs(dot(n, vec3(0, 1, 0))) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0);
@@ -207,7 +216,7 @@ BSDFSample SampleBSDF(Material matr, ivec2 texelCoord, vec3 F, vec3 n, vec3 w_o)
     vec3 w_idiff = SamplingDiffGGX(n, w_o, texelCoord);
     float pdf_diff = (1 - p_spec) * pdfDiff(n, w_idiff);
 
-    vec3 w_i = u1 > p_spec ? w_ispec : w_idiff; 
+    vec3 w_i = u1 < p_spec ? w_ispec : w_idiff; 
     return BSDFSample(w_i, pdf_diff, pdf_spec);
 }
 
@@ -254,6 +263,58 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
     return true;
 }
 
+bool hitTriangle(Triangle tri, Ray ray, Interval interval, inout HitRecord hitr) {
+    vec3 rayDir = ray.direction;
+    vec3 raySrc = ray.source;
+
+    vec3 edge1 = tri.c - tri.a;
+    vec3 edge2 = tri.b - tri.a;
+    vec3 outNormal = normalize(cross(edge1, edge2));
+
+    vec3 normal;
+    bool isFront;
+
+    if (dot(outNormal, rayDir) > 0) {
+        normal = -1 * outNormal;
+        isFront = false;
+    } else {
+        normal = outNormal;
+        isFront = true;
+    }
+
+    if (abs(dot(normal, rayDir)) < 1e-3)
+        return false;
+
+    //moller trumbore
+    vec3 T = raySrc - tri.a;
+    vec3 P = cross(rayDir, edge2);
+    vec3 Q = cross(T, edge1);
+
+    float denom = dot(P, edge1);
+
+    if (abs(denom) < 1e-3) 
+        return false;
+
+    float t = dot(Q, edge2) / denom;
+
+    if (!isInsideInterval(interval, t))
+        return false;
+
+    float u = dot(P, T) / denom;
+    float v = dot(Q, rayDir) / denom;
+
+    if (u >= 0 && v >= 0 && u + v <= 1) {
+        hitr.point = raySrc + t * rayDir;
+        hitr.t = t;
+        hitr.normal = normal;
+        hitr.frontFace = isFront;
+        hitr.matId = tri.matId;
+        return true;
+    }
+
+    return false;
+}
+
 Ray handleDielectric(Ray ray, Material matr, HitRecord hitr, ivec2 texelCoord) {
     vec3 n = normalize(hitr.normal);
     float ri = hitr.frontFace ? 1.0 / matr.ior : matr.ior;
@@ -274,14 +335,18 @@ Ray handleDielectric(Ray ray, Material matr, HitRecord hitr, ivec2 texelCoord) {
 
 bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
     bool hasHit = false;
-    float closestT = interval.tmax;
 
     for (int i = 0; i < spheres.length(); i++) {
         if (hitSphere(spheres[i], ray, interval, hitr)) {
             hasHit = true;
-            closestT = hitr.t;
+            interval.tmax = hitr.t;
+        }
+    }
 
-            interval.tmax = closestT;
+    for (int i = 0; i < triangles.length(); i++) {
+        if (hitTriangle(triangles[i], ray, interval, hitr)) {
+            hasHit = true;
+            interval.tmax = hitr.t;
         }
     }
 
@@ -297,6 +362,13 @@ bool anyHit(Ray ray) {
             Material matr = materials[hitr.matId];
             if (matr.transmissive != 1) return true; 
         } 
+    }
+    
+    for (int i = 0; i < triangles.length(); i++) {
+        if (hitTriangle(triangles[i], ray, interval, hitr)) {
+            Material matr = materials[hitr.matId];
+            if (matr.transmissive != 1) return true;
+        }
     }
 
     return false;
