@@ -81,34 +81,24 @@ void Renderer::createScreenQuad() {
     glBindImageTexture(3, accTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
 
-void Renderer::initScene() {  
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.spheres.size() * sizeof(GPUSphere),
-            scene.spheres.data(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
+void Renderer::initScene() {
+    glGenBuffers(4, buffers); 
+    
+    auto initBuffer = [this](unsigned int i, int bufId,
+            std::size_t sizeInBytes, void const *data) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffers[i]);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeInBytes, data, GL_STATIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bufId, buffers[i]);
+    };  
 
-    glGenBuffers(1, &mbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.materials.size() * sizeof(GPUMaterial),
-            scene.materials.data(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mbo);
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.vertices.size() * sizeof(GPUVertex),
-            scene.vertices.data(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, vbo);
-
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ibo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.indices.size() * sizeof(int),
-            scene.indices.data(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ibo);
+    initBuffer(0, 1, scene.spheres.size() * sizeof(GPUSphere), scene.spheres.data());
+    initBuffer(1, 2, scene.materials.size() * sizeof(GPUMaterial), scene.materials.data());
+    initBuffer(2, 4, scene.vertices.size() * sizeof(GPUVertex), scene.vertices.data());
+    initBuffer(3, 5, scene.indices.size() * sizeof(int), scene.indices.data());
 }
 
 void Renderer::updateScene(int index) {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffers[1]);
     glBufferSubData(GL_SHADER_STORAGE_BUFFER, index * sizeof(GPUMaterial),
                 sizeof(GPUMaterial), &scene.materials[index]);
 }

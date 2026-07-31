@@ -22,10 +22,8 @@ class Renderer {
     unsigned int accTexture;
     unsigned int quadVAO = 0;
     unsigned int quadVBO;
-    unsigned int ssbo;
-    unsigned int mbo;
-    unsigned int vbo;
-    unsigned int ibo;
+
+    unsigned int buffers[4]; 
         
     Shader *shader;
     ComputeShader *computeShader;
