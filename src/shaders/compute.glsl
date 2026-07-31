@@ -15,6 +15,7 @@ uniform int frameCounter;
 
 vec3 lightPos = vec3(1, 1, 1);
 const int MAX_BOUNCES = 5;
+const int NUM_TRIANGLES = 1;
 
 struct Ray {
     vec3 source;
@@ -48,6 +49,11 @@ struct Sphere {
     int matId;
 };
 
+struct Vertex {
+    vec3 position;
+    vec3 normal;
+};
+
 struct Triangle {
     vec3 a, b, c;
     int matId;
@@ -62,9 +68,8 @@ struct BSDFSample {
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
 
-Triangle triangles[] = Triangle[](
-    Triangle(vec3(-1, 3, -1), vec3(1, 3, -1), vec3(0, 4, -1), 2)
-);
+layout(std430, binding = 4) buffer VertexBuffer { Vertex vertice[]; };
+layout(std430, binding = 5) buffer IndexBuffer { int indices[]; };
 
 void buildTB(vec3 n, inout vec3 T, inout vec3 B) {
     vec3 nUp = abs(dot(n, vec3(0, 1, 0))) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0);
@@ -263,7 +268,14 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
     return true;
 }
 
-bool hitTriangle(Triangle tri, Ray ray, Interval interval, inout HitRecord hitr) {
+bool hitTriangle(int triId, Ray ray, Interval interval, inout HitRecord hitr) {
+    
+    vec3 a = vertice[indices[triId * 3]].position;
+    vec3 b = vertice[indices[triId * 3 + 1]].position;
+    vec3 c = vertice[indices[triId * 3 + 2]].position;
+
+    Triangle tri = Triangle(a, b, c, 1);
+
     vec3 rayDir = ray.direction;
     vec3 raySrc = ray.source;
 
@@ -343,8 +355,8 @@ bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
         }
     }
 
-    for (int i = 0; i < triangles.length(); i++) {
-        if (hitTriangle(triangles[i], ray, interval, hitr)) {
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+        if (hitTriangle(i, ray, interval, hitr)) {
             hasHit = true;
             interval.tmax = hitr.t;
         }
@@ -364,8 +376,8 @@ bool anyHit(Ray ray) {
         } 
     }
     
-    for (int i = 0; i < triangles.length(); i++) {
-        if (hitTriangle(triangles[i], ray, interval, hitr)) {
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+        if (hitTriangle(i, ray, interval, hitr)) {
             Material matr = materials[hitr.matId];
             if (matr.transmissive != 1) return true;
         }

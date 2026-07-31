@@ -24,6 +24,8 @@ class Renderer {
     unsigned int quadVBO;
     unsigned int ssbo;
     unsigned int mbo;
+    unsigned int vbo;
+    unsigned int ibo;
         
     Shader *shader;
     ComputeShader *computeShader;

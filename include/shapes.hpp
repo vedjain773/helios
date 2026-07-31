@@ -14,6 +14,15 @@ struct Material {
     int transmissive;
 };
 
+struct GPUMaterial {
+    glm::vec3 albedo;
+    float metallic;
+    float roughness;
+    float ior;
+    int transmissive;
+    float _pad2 = 0.0;
+};
+
 struct Sphere {
     Vec3 center;
     float radius;
@@ -30,13 +39,16 @@ struct GPUSphere {
     float _pad2 = 0.0;
 };
 
-struct GPUMaterial {
-    glm::vec3 albedo;
-    float metallic;
-    float roughness;
-    float ior;
-    int transmissive;
-    float _pad2 = 0.0;
+struct Vertex {
+    Vec3 position;
+    Vec3 normal = {0.0f};
+};
+
+struct GPUVertex {
+    glm::vec3 position;
+    float _pad0 = 0.0;
+    glm::vec3 normal;
+    float _pad1 = 0.0;
 };
 
 #endif

@@ -22,6 +22,18 @@ void Scene::addMaterial(Material &material) {
     cpuMaterials.emplace_back(material);
 }
 
+void Scene::addVertices(Vertex &vertex) {
+    GPUVertex gpuvertex;
+    gpuvertex.position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z);
+    gpuvertex.normal = glm::vec3(vertex.normal.x, vertex.normal.y, vertex.normal.z);
+
+    vertices.push_back(gpuvertex);
+}
+
+void Scene::addIndices(int index) {
+    indices.push_back(index);
+}
+
 void Scene::update(int index) {
     GPUMaterial &target = materials[index];
     Material material = cpuMaterials[index];

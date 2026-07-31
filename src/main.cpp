@@ -26,7 +26,11 @@ int main() {
     Material mat_metal = {{0.759, 0.759, 0.759}, 1.00, 0.2, 0.00, 0};
     Material mat_diff = {{1.0, 0.0, 0.0}, 0.00, 1.00, 0.00, 0};
     Material mat_gr = {{0.0, 1.0, 0.0}, 0.25, 0.25, 0.00, 0};
-    
+
+    Vertex v1 = {{-1, 3, -1}};
+    Vertex v2 = {{0, 4, -1}};
+    Vertex v3 = {{1, 3, -1}};
+
     Scene scene;
     scene.addSphere(sp_gl);
     scene.addSphere(sp_metal);
@@ -37,7 +41,15 @@ int main() {
     scene.addMaterial(mat_metal);
     scene.addMaterial(mat_diff);
     scene.addMaterial(mat_gr);
-        
+       
+    scene.addVertices(v1);
+    scene.addVertices(v2);
+    scene.addVertices(v3);
+
+    scene.addIndices(0);
+    scene.addIndices(1);
+    scene.addIndices(2);
+
     Renderer renderer(800, 600, camera, scene);
     renderer.initGLFW();
     renderer.initImgui(); 

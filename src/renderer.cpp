@@ -93,6 +93,18 @@ void Renderer::initScene() {
     glBufferData(GL_SHADER_STORAGE_BUFFER, scene.materials.size() * sizeof(GPUMaterial),
             scene.materials.data(), GL_STATIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mbo);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.vertices.size() * sizeof(GPUVertex),
+            scene.vertices.data(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, vbo);
+
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ibo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, scene.indices.size() * sizeof(int),
+            scene.indices.data(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ibo);
 }
 
 void Renderer::updateScene(int index) {
