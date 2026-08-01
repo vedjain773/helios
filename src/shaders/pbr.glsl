@@ -11,7 +11,7 @@ float DistributionGGX(vec3 n, vec3 h, float alphaSq) {
     return alphaSq / denominator;
 }
 
-float GeometrySchlickGGX(float nDotv, float alphaSq) {
+float GeometrySmithGGX(float nDotv, float alphaSq) {
     float numerator = 2 * nDotv;
     float denominator = nDotv + sqrt(alphaSq + (1 - alphaSq) * nDotv * nDotv);
 
@@ -19,8 +19,8 @@ float GeometrySchlickGGX(float nDotv, float alphaSq) {
 }
 
 float GeometrySmith(float nDotw_o, float nDotw_i, float alphaSq) {
-    float ggx1 = GeometrySchlickGGX(nDotw_o, alphaSq);
-    float ggx2 = GeometrySchlickGGX(nDotw_i, alphaSq);
+    float ggx1 = GeometrySmithGGX(nDotw_o, alphaSq);
+    float ggx2 = GeometrySmithGGX(nDotw_i, alphaSq);
 
     return ggx1 * ggx2;
 }
