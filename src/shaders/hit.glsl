@@ -43,7 +43,7 @@ bool hitTriangle(int triId, Ray ray, Interval interval, inout HitRecord hitr) {
     vec3 b = vertice[indices[triId * 3 + 1]].position;
     vec3 c = vertice[indices[triId * 3 + 2]].position;
 
-    Triangle tri = Triangle(a, b, c, 1);
+    Triangle tri = Triangle(a, b, c, triMatIds[triId]);
 
     vec3 rayDir = ray.direction;
     vec3 raySrc = ray.source;

@@ -15,7 +15,7 @@ uniform int frameCounter;
 
 vec3 lightPos = vec3(1, 1, 1);
 const int MAX_BOUNCES = 5;
-const int NUM_TRIANGLES = 1;
+const int NUM_TRIANGLES = 12;
 
 #include "structs.glsl"
 
@@ -24,6 +24,8 @@ layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
 
 layout(std430, binding = 4) buffer VertexBuffer { Vertex vertice[]; };
 layout(std430, binding = 5) buffer IndexBuffer { int indices[]; };
+
+layout(std430, binding = 6) buffer TriMats { int triMatIds[]; };
 
 void buildTB(vec3 n, inout vec3 T, inout vec3 B) {
     vec3 nUp = abs(dot(n, vec3(0, 1, 0))) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0);

@@ -23,7 +23,7 @@ class Renderer {
     unsigned int quadVAO = 0;
     unsigned int quadVBO;
 
-    unsigned int buffers[4]; 
+    unsigned int buffers[5]; 
         
     Shader *shader;
     ComputeShader *computeShader;

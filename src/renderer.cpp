@@ -82,7 +82,7 @@ void Renderer::createScreenQuad() {
 }
 
 void Renderer::initScene() {
-    glGenBuffers(4, buffers); 
+    glGenBuffers(5, buffers); 
     
     auto initBuffer = [this](unsigned int i, int bufId,
             std::size_t sizeInBytes, void const *data) {
@@ -95,6 +95,7 @@ void Renderer::initScene() {
     initBuffer(1, 2, scene.materials.size() * sizeof(GPUMaterial), scene.materials.data());
     initBuffer(2, 4, scene.vertices.size() * sizeof(GPUVertex), scene.vertices.data());
     initBuffer(3, 5, scene.indices.size() * sizeof(int), scene.indices.data());
+    initBuffer(4, 6, scene.triMatIds.size() * sizeof(int), scene.triMatIds.data());
 }
 
 void Renderer::updateScene(int index) {
