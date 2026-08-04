@@ -156,6 +156,59 @@ Scene buildCube() {
     return scene;
 }
 
+Scene buildCubeAlt() {
+    Scene scene;
+
+    Material mat_red = {{1.0, 0.0, 0.0}, 0.00, 1.00, 0.00, 0};
+    Material mat_green = {{0.0, 1.0, 0.0}, 0.00, 1.00, 0.00, 0};
+    Material mat_white = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+
+    Vertex v0 = {{-0.5, -0.5, -0.5}};
+    Vertex v1 = {{ 0.5, -0.5, -0.5}};
+    Vertex v2 = {{ 0.5,  0.5, -0.5}};
+    Vertex v3 = {{-0.5,  0.5, -0.5}};
+    Vertex v4 = {{-0.5, -0.5,  0.5}};
+    Vertex v5 = {{ 0.5, -0.5,  0.5}};
+    Vertex v6 = {{ 0.5,  0.5,  0.5}};
+    Vertex v7 = {{-0.5,  0.5,  0.5}};
+
+    scene.addMaterial(mat_red);
+    scene.addMaterial(mat_green);
+    scene.addMaterial(mat_white);
+
+    scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
+    int base = 0;
+    scene.addIndices(getCubeIndices(base));
+    
+    scene.addTriMatIds({2, 2, 2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
+     
+    Material tall = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+
+    Vertex t0 = {{-0.303, -0.50, -0.238}};
+    Vertex t1 = {{-0.062, -0.50, -0.303}};
+    Vertex t2 = {{-0.062,  0.10, -0.303}};
+    Vertex t3 = {{-0.303,  0.10, -0.238}};
+    Vertex t4 = {{-0.238, -0.50,  0.003}};
+    Vertex t5 = {{ 0.003, -0.50, -0.062}};
+    Vertex t6 = {{ 0.003,  0.10, -0.062}};
+    Vertex t7 = {{-0.238,  0.10,  0.003}};
+    
+    scene.addMaterial(tall);
+    scene.addVertices({t0, t1, t2, t3, t4, t5, t6, t7});
+
+    base = 8;
+    scene.addIndices(getCubeIndices(base));
+    scene.addTriMatIds({3, 3, 3, 3, 3, 3, 3, 3, 3, 3});
+
+    Material mat_gl = {{0.1, 0.1, 0.1}, 0.25, 0.25, 1.5, 1};
+    Sphere sp_gl = {{0.15, -0.35, 0.15}, 0.15, 4};
+
+    scene.addMaterial(mat_gl);
+    scene.addSphere(sp_gl);
+
+    return scene;
+}
+
 std::array<int, 36> getCubeIndices(int base) {
     return {
         base + 0, base + 1, base + 2,   base + 0, base + 2, base + 3,

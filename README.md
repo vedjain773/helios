@@ -2,6 +2,7 @@
 A GPU-accelerated path tracer built in C++ using OpenGL compute shaders and GLSL for rendering, with ImGui for live scene/material editing.
 
 ![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)
+![Standard Cornell box](assets/cornell.png)
 
 ## Build & Run
 

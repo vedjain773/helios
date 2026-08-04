@@ -29,6 +29,7 @@ class Scene {
 
 Scene buildThreeSpheres();
 Scene buildCube();
+Scene buildCubeAlt();
 
 std::array<int, 36> getCubeIndices(int base);
 
