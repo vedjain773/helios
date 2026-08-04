@@ -38,3 +38,12 @@ float pdfDiff(vec3 n, vec3 w_i) {
     return dot(n, w_i) / PI;
 }
 
+LightSample sampleQuadLight(QuadLight light, ivec2 texelCoord, int offset) {
+    float u1 = randTex(texelCoord, offset);
+    float u2 = randTex(texelCoord, offset + 1);
+    
+    vec3 point = light.corner + u1 * light.edge1 + u2 * light.edge2;
+    
+    float area = length(cross(light.edge1, light.edge2));
+    return LightSample(point, light.normal, light.emission, 1.0 / area);
+}

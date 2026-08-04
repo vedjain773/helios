@@ -13,11 +13,20 @@ uniform vec3 pixelDeltaV;
 
 uniform int frameCounter;
 
-vec3 lightPos = vec3(1, 1, 1);
+//vec3 lightPos = vec3(1, 1, 1);
 const int MAX_BOUNCES = 5;
 const int NUM_TRIANGLES = 12;
+const float FIREFLY_CLAMP = 5.0;
 
 #include "structs.glsl"
+
+QuadLight quadLight = QuadLight(
+        vec3(-0.5, 3.0, -1.5),
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, -1.0, 0.0),
+        vec3(15.0, 15.0, 15.0)
+        );
 
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
@@ -127,17 +136,32 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
             F0 = mix(F0, matr.albedo, matr.metallic);
     
             vec3 w_o = -normalize(initRay.direction);
-            vec3 w_i = normalize(lightPos - hitr.point);
+
+            LightSample ls = sampleQuadLight(quadLight, texelCoord, 9976);
+
+            vec3 toLight = ls.point - hitr.point;
+            float distSq = dot(toLight, toLight);
+            float dist = sqrt(distSq);
+
+            vec3 w_i = toLight / dist;
+
+            float cosThetaLight = max(dot(ls.normal, -w_i), 0.0);
 
             float nDotw_i = max(dot(n, w_i), 0.0);
             vec3 h = normalize(w_o + w_i);
           
             vec3 F = FresnelSchlick(h, w_o, F0);
-            vec3 direct = fTotal(h, w_o, w_i, n, F, matr) * nDotw_i;
             
-            Ray sray = Ray(hitr.point + 0.01 * n, lightPos - hitr.point);
-            if (!anyHit(sray)) {
-                radiance += throughput * direct;
+            if (cosThetaLight > 0.0 && nDotw_i > 0.0) {
+                float pdfSolidAng = ls.pdfArea * distSq / cosThetaLight;
+                vec3 direct = fTotal(h, w_o, w_i, n, F, matr) * 
+                    nDotw_i * ls.emission / pdfSolidAng;
+                direct = min(direct, vec3(FIREFLY_CLAMP));
+
+                Ray sray = Ray(hitr.point + 0.01 * n, toLight);
+                if (!anyHit(sray)) {
+                    radiance += throughput * direct;
+                }
             }
            
             BSDFSample bsdf_sample = SampleBSDF(matr, texelCoord, F, n, w_o);
@@ -149,8 +173,11 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
             h = normalize(w_o + w_i);
             F = FresnelSchlick(h, w_o, F0);
             nDotw_i = max(dot(n, w_i), 0.0);
+            
+            vec3 indirect = fTotal(h, w_o, w_i, n, F, matr) * nDotw_i / pdf_total;
+            indirect = min(indirect, vec3(FIREFLY_CLAMP));
+            throughput *= indirect;
 
-            throughput *= fTotal(h, w_o, w_i, n, F, matr) * nDotw_i / pdf_total;
             initRay = Ray(hitr.point + 1e-3 * n, w_i); 
 
         } else {
@@ -177,6 +204,9 @@ void main() {
    
     Ray ray = genRay(texelCoord);
     vec3 sampleColor = closestHit(ray, texelCoord);
+    
+    if (any(isnan(sampleColor)) || any(isinf(sampleColor)) )
+        sampleColor = vec3(0.0);
 
     vec3 prevSum = (frameCounter == 0) 
         ? vec3(0.0) 

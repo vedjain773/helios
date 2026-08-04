@@ -3,6 +3,21 @@ struct Ray {
     vec3 direction;
 };
 
+struct QuadLight {
+    vec3 corner;
+    vec3 edge1;
+    vec3 edge2;
+    vec3 normal;
+    vec3 emission;
+};
+
+struct LightSample {
+    vec3 point;
+    vec3 normal;
+    vec3 emission;
+    float pdfArea;
+};
+
 struct Material {
     vec3 albedo;
     float metallic;
