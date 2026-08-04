@@ -17,8 +17,8 @@ int main() {
 
     Camera camera(cfg);
 
-    Scene scene = buildThreeSpheres();
-    //Scene scene = buildCube();
+    //Scene scene = buildThreeSpheres();
+    Scene scene = buildCube();
     
     Renderer renderer(800, 600, camera, scene);
     renderer.initGLFW();

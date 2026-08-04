@@ -36,6 +36,10 @@ void Scene::addIndices(std::initializer_list<int> indexList) {
     indices.insert(indices.end(), indexList); 
 }
 
+void Scene::addIndices(const std::array<int, 36> &indexList) {
+    indices.insert(indices.end(), indexList.begin(), indexList.end());
+}
+
 void Scene::addTriMatIds(std::initializer_list<int> triMatList) {
     triMatIds.insert(triMatIds.end(), triMatList);
 }
@@ -97,23 +101,68 @@ Scene buildCube() {
     scene.addMaterial(mat_white);
 
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
-
+    int base = 0;
     scene.addIndices({
             // back face  (z = -0.5)
-            0, 1, 2,   0, 2, 3,
-            // front face (z = 0.5)
-            //4, 6, 5,   4, 7, 6,
+            base, base + 1, base + 2,   base, base + 2, base + 3,
             // left face  (x = -0.5)
-            4, 0, 3,   4, 3, 7,
+            base + 4, base, base + 3,   base + 4, base + 3, base + 7,
             // right face (x = 0.5)
-            1, 5, 6,   1, 6, 2,
+            base + 1, base + 5, base + 6,   base + 1, base + 6, base + 2,
             // bottom face (y = -0.5)
-            4, 5, 1,   4, 1, 0,
+            base + 4, base + 5, base + 1,   base + 4, base + 1, base,
             // top face   (y = 0.5)
-            3, 2, 6,   3, 6, 7
+            base + 3, base + 2, base + 6,   base + 3, base + 6, base + 7
             });
     
     scene.addTriMatIds({2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
+    
+    Material small = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+
+    Vertex s0 = {{ 0.060, -0.50, -0.042}};
+    Vertex s1 = {{ 0.342, -0.50,  0.060}};
+    Vertex s2 = {{ 0.342, -0.20,  0.060}};
+    Vertex s3 = {{ 0.060, -0.20, -0.042}};
+    Vertex s4 = {{-0.042, -0.50,  0.240}};
+    Vertex s5 = {{ 0.240, -0.50,  0.342}};
+    Vertex s6 = {{ 0.240, -0.20,  0.342}};
+    Vertex s7 = {{-0.042, -0.20,  0.240}};
+    
+    scene.addMaterial(small);
+    scene.addVertices({s0, s1, s2, s3, s4, s5, s6, s7});
+
+    base = 8;
+    scene.addIndices(getCubeIndices(base));
+    scene.addTriMatIds({3, 3, 3, 3, 3, 3, 3, 3, 3, 3});
+
+    Material tall = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+
+    Vertex t0 = {{-0.303, -0.50, -0.238}};
+    Vertex t1 = {{-0.062, -0.50, -0.303}};
+    Vertex t2 = {{-0.062,  0.10, -0.303}};
+    Vertex t3 = {{-0.303,  0.10, -0.238}};
+    Vertex t4 = {{-0.238, -0.50,  0.003}};
+    Vertex t5 = {{ 0.003, -0.50, -0.062}};
+    Vertex t6 = {{ 0.003,  0.10, -0.062}};
+    Vertex t7 = {{-0.238,  0.10,  0.003}};
+    
+    scene.addMaterial(tall);
+    scene.addVertices({t0, t1, t2, t3, t4, t5, t6, t7});
+
+    base = 16;
+    scene.addIndices(getCubeIndices(base));
+    scene.addTriMatIds({4, 4, 4, 4, 4, 4, 4, 4, 4, 4});
 
     return scene;
+}
+
+std::array<int, 36> getCubeIndices(int base) {
+    return {
+        base + 0, base + 1, base + 2,   base + 0, base + 2, base + 3,
+        base + 4, base + 6, base + 5,   base + 4, base + 7, base + 6,
+        base + 4, base + 0, base + 3,   base + 4, base + 3, base + 7,
+        base + 1, base + 5, base + 6,   base + 1, base + 6, base + 2,
+        base + 4, base + 5, base + 1,   base + 4, base + 1, base + 0,
+        base + 3, base + 2, base + 6,   base + 3, base + 6, base + 7
+    };
 }

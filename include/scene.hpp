@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 #include "shapes.hpp"
 #include <vector>
+#include <array>
 #include <initializer_list>
 
 class Scene {
@@ -20,6 +21,7 @@ class Scene {
     void addMaterial(Material &material);
     void addVertices(std::initializer_list<Vertex> vertexList);
     void addIndices(std::initializer_list<int> indexList);
+    void addIndices(const std::array<int, 36> &indexList);
     void addTriMatIds(std::initializer_list<int> triMatList);
 
     void update(int index);
@@ -27,5 +29,7 @@ class Scene {
 
 Scene buildThreeSpheres();
 Scene buildCube();
+
+std::array<int, 36> getCubeIndices(int base);
 
 #endif

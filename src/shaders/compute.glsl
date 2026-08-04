@@ -14,19 +14,19 @@ uniform vec3 pixelDeltaV;
 uniform int frameCounter;
 
 //vec3 lightPos = vec3(1, 1, 1);
-const int MAX_BOUNCES = 5;
-const int NUM_TRIANGLES = 12;
+const int MAX_BOUNCES = 2;
+const int NUM_TRIANGLES = 34;
 const float FIREFLY_CLAMP = 5.0;
 
 #include "structs.glsl"
 
 QuadLight quadLight = QuadLight(
-        vec3(-0.5, 3.0, -1.5),
-        vec3(1.0, 0.0, 0.0),
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, -1.0, 0.0),
-        vec3(15.0, 15.0, 15.0)
-        );
+    vec3(-0.15, 0.49, -0.15),
+    vec3(0.3, 0.0, 0.0),
+    vec3(0.0, 0.0, 0.3),
+    vec3(0.0, -1.0, 0.0),
+    vec3(15.0, 15.0, 15.0)
+);
 
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };
@@ -178,7 +178,14 @@ vec3 closestHit(Ray ray, ivec2 texelCoord) {
             indirect = min(indirect, vec3(FIREFLY_CLAMP));
             throughput *= indirect;
 
-            initRay = Ray(hitr.point + 1e-3 * n, w_i); 
+            initRay = Ray(hitr.point + 1e-3 * n, w_i);
+
+            float continueProb = clamp(
+                    max(throughput.r, max(throughput.g, throughput.b)), 0.05, 1.0);
+
+            if (randTex(texelCoord, 5487) > continueProb) { break; }
+
+            throughput /= continueProb;
 
         } else {
             radiance += throughput * missColor;
