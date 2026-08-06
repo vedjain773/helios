@@ -2,21 +2,23 @@
 #include "compute.hpp"
 
 void Scene::addSphere(Sphere &sphere) {
-    GPUSphere gpuSphere;
-    gpuSphere.center = glm::vec3(sphere.center.x, sphere.center.y, sphere.center.z);
-    gpuSphere.radius = sphere.radius;
-    gpuSphere.matId = sphere.matId;
+    GPUSphere gpuSphere {
+        .center = glm::vec3(sphere.center.x, sphere.center.y, sphere.center.z),
+        .radius = sphere.radius,
+        .matId = sphere.matId
+    }; 
 
     spheres.push_back(gpuSphere);
 }
 
 void Scene::addMaterial(Material &material) {
-    GPUMaterial gpuMaterial;
-    gpuMaterial.albedo = glm::vec3(material.albedo.x, material.albedo.y, material.albedo.z);
-    gpuMaterial.metallic = material.metallic;
-    gpuMaterial.roughness = material.roughness;
-    gpuMaterial.ior = material.ior;
-    gpuMaterial.transmissive = material.transmissive;
+    GPUMaterial gpuMaterial = {
+        .albedo = glm::vec3(material.albedo.x, material.albedo.y, material.albedo.z),
+        .metallic = material.metallic,
+        .roughness = material.roughness,
+        .ior = material.ior,
+        .transmissive = material.transmissive
+    }; 
 
     materials.push_back(gpuMaterial);
     cpuMaterials.emplace_back(material);
@@ -24,9 +26,10 @@ void Scene::addMaterial(Material &material) {
 
 void Scene::addVertices(std::initializer_list<Vertex> vertexList) {
     for (const Vertex &vertex: vertexList) {
-        GPUVertex gpuvertex;
-        gpuvertex.position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z);
-        gpuvertex.normal = glm::vec3(vertex.normal.x, vertex.normal.y, vertex.normal.z);
+        GPUVertex gpuvertex {
+            .position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z),
+            .normal = glm::vec3(vertex.normal.x, vertex.normal.y, vertex.normal.z) 
+        }; 
 
         vertices.push_back(gpuvertex);
     } 
