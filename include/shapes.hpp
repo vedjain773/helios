@@ -51,4 +51,12 @@ struct GPUVertex {
     float _pad1 = 0.0;
 };
 
+struct Mesh {
+    int vertexOffset;
+    int vertexCount;
+    int indexOffset;
+    int indexCount;
+    int matId;
+};
+
 #endif
