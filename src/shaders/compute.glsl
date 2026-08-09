@@ -21,7 +21,7 @@ const float FIREFLY_CLAMP = 5.0;
 #include "structs.glsl"
 
 QuadLight quadLight = QuadLight(
-    vec3(-0.15, 0.49, -0.15),
+    vec3(-0.15, 3.49, -0.15),
     vec3(0.3, 0.0, 0.0),
     vec3(0.0, 0.0, 0.3),
     vec3(0.0, -1.0, 0.0),
