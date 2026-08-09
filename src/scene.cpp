@@ -2,7 +2,10 @@
 
 #include "scene.hpp"
 #include "compute.hpp"
+#include "objloader.hpp"
 #include "glm/gtx/rotate_vector.hpp"
+
+#include <iostream>
 
 void Scene::addSphere(Sphere &sphere) {
     GPUSphere gpuSphere {
@@ -38,11 +41,26 @@ void Scene::addVertices(std::initializer_list<Vertex> vertexList) {
     } 
 }
 
+void Scene::addVertices(std::vector<Vertex> &vertexList) {
+    for (const Vertex &vertex: vertexList) {
+        GPUVertex gpuvertex {
+            .position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z),
+            .normal = glm::vec3(vertex.normal.x, vertex.normal.y, vertex.normal.z) 
+        }; 
+
+        vertices.push_back(gpuvertex);
+    }
+} 
+
 void Scene::addIndices(std::initializer_list<int> indexList) {
     indices.insert(indices.end(), indexList); 
 }
 
 void Scene::addIndices(const std::array<int, 36> &indexList) {
+    indices.insert(indices.end(), indexList.begin(), indexList.end());
+}
+
+void Scene::addIndices(std::vector<int> &indexList) {
     indices.insert(indices.end(), indexList.begin(), indexList.end());
 }
 
@@ -174,6 +192,32 @@ Scene buildCubeAlt() {
 
     scene.addMaterial(mat_gl);
     scene.addSphere(sp_gl);
+
+    return scene;
+}
+
+Scene buildObj() {
+    ObjLoader objLoader("../obj/teapot.obj");
+    Scene scene;
+
+    Vertex v0 = {{-0.5, -1.0, -0.5}};
+    Vertex v1 = {{ 0.5, -1.0, -0.5}};
+    Vertex v2 = {{ 0.5, -1.0,  0.5}};
+    Vertex v3 = {{-0.5, -1.0,  0.5}};
+    
+    scene.addVertices({v0, v1, v2, v3});
+    scene.addIndices({0, 1, 2, 2, 0, 3});
+
+    Material mat_red = {{1.0, 0.0, 0.0}, 0.0, 1.0, 0.0, 0};
+    scene.addMaterial(mat_red);
+
+    scene.addTriMatIds({0, 0});
+
+    Material mat_white = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+    scene.addMaterial(mat_white);
+
+    Mesh objmesh = objLoader.createObjMesh(scene, 1);
+    std::cout << "Done: " << objmesh.vertexOffset << "\n";
 
     return scene;
 }

@@ -37,6 +37,7 @@ add_executable(helios
     src/main.cpp
     src/shader.cpp
     src/compute.cpp
+    src/objloader.cpp
     src/camera.cpp
     src/renderer.cpp
     src/scene.cpp

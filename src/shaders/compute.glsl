@@ -14,8 +14,8 @@ uniform vec3 pixelDeltaV;
 uniform int frameCounter;
 
 //vec3 lightPos = vec3(1, 1, 1);
-const int MAX_BOUNCES = 2;
-const int NUM_TRIANGLES = 34;
+const int MAX_BOUNCES = 5;
+const int NUM_TRIANGLES = 30;
 const float FIREFLY_CLAMP = 5.0;
 
 #include "structs.glsl"
