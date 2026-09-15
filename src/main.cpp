@@ -55,7 +55,7 @@ int main() {
     std::cout << "Before tree construction...\n";
     builder.printTriangleIndices();
 
-    builder.buildTree();
+    builder.buildTree(0, 0);
 
     std::cout << "\nAfter tree construction...\n";
     builder.printNode(0, 0);

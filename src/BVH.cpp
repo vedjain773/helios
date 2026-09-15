@@ -24,7 +24,10 @@ glm::vec3 Triangle::getCentroid() const {
 
 //---
 
-BVHBuilder::BVHBuilder(std::vector<Vertex> &vertexList, std::vector<int> &indexList) {
+BVHBuilder::BVHBuilder(
+        std::vector<Vertex> &vertexList, std::vector<int> &indexList,
+        std::vector<int> &matIds) {
+    
     unsigned int size = indexList.size() / 3;
 
     for (int i = 0; i < size; i++) {
@@ -36,7 +39,7 @@ BVHBuilder::BVHBuilder(std::vector<Vertex> &vertexList, std::vector<int> &indexL
         glm::vec3 v2 = vertexToGLM(vertexList[i2]);
         glm::vec3 v3 = vertexToGLM(vertexList[i3]);
 
-        triangles.push_back({{v1, v2, v3}, {i1, i2, i3}});
+        triangles.push_back({{v1, v2, v3}, {i1, i2, i3}, matIds[i]});
     }
 
     BVHNode rootNode = {
@@ -97,11 +100,23 @@ std::tuple<glm::vec3, glm::vec3> BVHBuilder::getBBox(int start, int count) {
     return std::make_tuple(boundsMin, boundsMax);
 }
 
-void BVHBuilder::buildTree() {
+std::tuple<glm::vec3, glm::vec3> BVHBuilder::getBBoxFromNodes(int n1, int n2) {
+    glm::vec3 n1min = nodes[n1].boundsMin;
+    glm::vec3 n2min = nodes[n2].boundsMin;
+
+    glm::vec3 n1max = nodes[n1].boundsMax;
+    glm::vec3 n2max = nodes[n2].boundsMax;
+
+    updateMin(n1min, n2min);
+    updateMax(n1max, n2max);
+
+    return std::make_tuple(n1min, n1max);
+}
+
+void BVHBuilder::buildTree(int nodeIndex, int depth) {
     if (depth >= MAX_DEPTH) return;
 
-    int currIndex = nodes.size() - 1;
-    BVHNode &currNode = nodes[currIndex];
+    BVHNode &currNode = nodes[nodeIndex];
    
     if (currNode.triangleCount <= 1) {
         auto [boundsMin, boundsMax] = getBBox(currNode.triangleIndex, 1);
@@ -138,9 +153,7 @@ void BVHBuilder::buildTree() {
     nodes.push_back(leftNode);
     int leftNodeIndex = nodes.size() - 1;
 
-    depth += 1;
-    buildTree();
-    depth -= 1;
+    buildTree(leftNodeIndex, depth + 1);
 
     //Visit the right Node
     BVHNode rightNode = {
@@ -151,18 +164,16 @@ void BVHBuilder::buildTree() {
     nodes.push_back(rightNode);
     int rightNodeIndex = nodes.size() - 1;
 
-    depth += 1;
-    buildTree();
-    depth -= 1;
+    buildTree(rightNodeIndex, depth + 1);
 
     //Set remaining attributes for the current Node
-    nodes[currIndex].childAIndex = leftNodeIndex;
-    nodes[currIndex].childBIndex = rightNodeIndex; 
+    nodes[nodeIndex].childAIndex = leftNodeIndex;
+    nodes[nodeIndex].childBIndex = rightNodeIndex; 
 
-    auto [boundsMin, boundsMax] = getBBox(start, end - start);
+    auto [boundsMin, boundsMax] = getBBoxFromNodes(leftNodeIndex, rightNodeIndex);
 
-    nodes[currIndex].boundsMin = boundsMin;
-    nodes[currIndex].boundsMax = boundsMax;
+    nodes[nodeIndex].boundsMin = boundsMin;
+    nodes[nodeIndex].boundsMax = boundsMax;
 }
 
 void BVHBuilder::printTriangleIndices() {
@@ -197,6 +208,22 @@ void BVHBuilder::printNode(int index, int depth) {
     }
 }
 
+std::vector<int> BVHBuilder::getIndices() {
+    std::vector<int> indices;
+
+    for (Triangle &tri: triangles) {
+        indices.insert(indices.end(), tri.indices.begin(), tri.indices.end());
+    }
+}
+
+std::vector<int> BVHBuilder::getMatIDs() {
+    std::vector<int> matIds;
+
+    for (Triangle &tri: triangles) {
+        matIds.push_back(tri.matId);
+    }
+}
+
 void BVHBuilder::testIntersection(const Ray &ray) {
     std::stack<BVHNode> nodeStack;
 
@@ -207,7 +234,7 @@ void BVHBuilder::testIntersection(const Ray &ray) {
         
         if (!hitsNode(currNode, ray)) continue;
 
-        if (isLead(currNode)) {
+        if (isLeaf(currNode)) {
             Triangle tri = triangles[currNode.triangleIndex];
             
             std::cout << "Hit Triangle ...\n";
