@@ -59,4 +59,6 @@ struct Mesh {
     int matId;
 };
 
+glm::vec3 vertexToGLM(const Vertex &vertex);
+
 #endif
