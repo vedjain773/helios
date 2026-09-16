@@ -125,14 +125,30 @@ bool anyHit(Ray ray) {
     for (int i = 0; i < spheres.length(); i++) {
         if (hitSphere(spheres[i], ray, interval, hitr)) {
             Material matr = materials[hitr.matId];
-            if (matr.transmissive != 1) return true; 
-        } 
-    }
-    
-    for (int i = 0; i < NUM_TRIANGLES; i++) {
-        if (hitTriangle(i, ray, interval, hitr)) {
-            Material matr = materials[hitr.matId];
             if (matr.transmissive != 1) return true;
+        }
+    }
+
+    int nodeStack[32];
+    int stackPtr = 0;
+    nodeStack[stackPtr++] = 0;
+
+    while (stackPtr > 0) {
+        int currNodeIndex = nodeStack[--stackPtr];
+        if (!hitNode(currNodeIndex, ray, interval)) continue;
+
+        if (isLeaf(currNodeIndex)) {
+            int triangleIndex = nodes[currNodeIndex].triangleIndex;
+            int triangleCount = nodes[currNodeIndex].triangleCount;
+
+            for (int i = triangleIndex; i < triangleIndex + triangleCount; i++) {
+                if (hitTriangle(i, ray, interval, hitr)) {
+                    Material matr = materials[hitr.matId];
+                    if (matr.transmissive != 1) return true;                }
+            }
+        } else {
+            nodeStack[stackPtr++] = nodes[currNodeIndex].childAIndex;
+            nodeStack[stackPtr++] = nodes[currNodeIndex].childBIndex;
         }
     }
 

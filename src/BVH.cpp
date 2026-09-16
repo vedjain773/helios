@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stack>
 
-#define MAX_DEPTH 10
+#define MAX_DEPTH 15
 
 //---
 

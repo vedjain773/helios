@@ -127,7 +127,8 @@ Scene buildThreeSpheres() {
     scene.addMaterial(mat_metal);
     scene.addMaterial(mat_diff);
     scene.addMaterial(mat_gr);
-       
+      
+    scene.buildBVH();
     return scene;
 }
 
@@ -154,10 +155,10 @@ Scene buildCube() {
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
     int base = 0;
     scene.addIndices({
-            base, base + 1, base + 2,   base, base + 2, base + 3,
-            base + 4, base, base + 3,   base + 4, base + 3, base + 7,
+            base + 0, base + 1, base + 2,   base + 0, base + 2, base + 3,
+            base + 4, base + 0, base + 3,   base + 4, base + 3, base + 7,
             base + 1, base + 5, base + 6,   base + 1, base + 6, base + 2,
-            base + 4, base + 5, base + 1,   base + 4, base + 1, base,
+            base + 4, base + 5, base + 1,   base + 4, base + 1, base + 0,
             base + 3, base + 2, base + 6,   base + 3, base + 6, base + 7
     });
     
@@ -201,9 +202,15 @@ Scene buildCubeAlt() {
 
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
     int base = 0;
-    scene.addIndices(getCubeIndices(base));
+    scene.addIndices({
+            base + 0, base + 1, base + 2,   base + 0, base + 2, base + 3,
+            base + 4, base + 0, base + 3,   base + 4, base + 3, base + 7,
+            base + 1, base + 5, base + 6,   base + 1, base + 6, base + 2,
+            base + 4, base + 5, base + 1,   base + 4, base + 1, base + 0,
+            base + 3, base + 2, base + 6,   base + 3, base + 6, base + 7
+    });
     
-    scene.addTriMatIds({2, 2, 2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
+    scene.addTriMatIds({2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
      
     Material tall = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
     scene.addMaterial(tall);
@@ -217,6 +224,7 @@ Scene buildCubeAlt() {
     scene.addMaterial(mat_gl);
     scene.addSphere(sp_gl);
 
+    scene.buildBVH();
     return scene;
 }
 
@@ -242,7 +250,8 @@ Scene buildObj() {
 
     Mesh objmesh = objLoader.createObjMesh(scene, 1);
     std::cout << "Done: " << objmesh.vertexOffset << "\n";
-
+    
+    scene.buildBVH();
     return scene;
 }
 
