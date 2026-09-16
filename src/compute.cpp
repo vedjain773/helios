@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 
+#define DEBUG 
+
 ComputeShader::ComputeShader(const std::string &computeShaderPath) {
     std::filesystem::path rootPath("../src/shaders/");
     std::ifstream computeShaderFile(computeShaderPath);
@@ -36,6 +38,13 @@ ComputeShader::ComputeShader(const std::string &computeShaderPath) {
     }
 
     const char *computeShaderSource = csBufStr.c_str();
+
+    #ifdef DEBUG
+        std::ofstream debugFile("compute_shader_src.txt");
+        debugFile << computeShaderSource;
+        debugFile.close();
+    #endif
+
     computeShaderFile.close();
 
     unsigned int computeShader;

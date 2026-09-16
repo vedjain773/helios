@@ -37,6 +37,45 @@ bool hitSphere(Sphere sphere, Ray ray, Interval interval, inout HitRecord hitr) 
     return true;
 }
 
+void sort2(inout float arr[2]) {
+    if (arr[0] > arr[1]) {
+        float tmp = arr[0];
+        arr[0] = arr[1];
+        arr[1] = tmp;
+    }
+}
+
+bool hitNode(int nodeId, Ray ray) {
+    vec3 boundsMin = nodes[nodeId].boundsMin;
+    vec3 boundsMax = nodes[nodeId].boundsMax;
+
+    vec3 raySrc = ray.source;
+    vec3 rayDir = ray.direction;
+
+    float xInter[2] = float[2]( 
+        (raySrc.x - boundsMin.x) /rayDir.x, (raySrc.x - boundsMax.x) /rayDir.x
+    );
+
+    float yInter[2] = float[2](
+        (raySrc.y - boundsMin.y) /rayDir.y, (raySrc.y - boundsMax.y) /rayDir.y
+    );
+
+    float zInter[2] = float[2](
+        (raySrc.z - boundsMin.z) /rayDir.z, (raySrc.z - boundsMax.z) /rayDir.z
+    );
+
+    sort2(xInter);
+    sort2(yInter);
+    sort2(zInter);
+
+    float near = max(max(xInter[0], yInter[0]), zInter[0]);
+    float far = min(min(xInter[1], yInter[1]), zInter[1]);
+    
+    if (isnan(near) || isnan(far)) return false;
+
+    return near <= far; 
+}
+
 bool hitTriangle(int triId, Ray ray, Interval interval, inout HitRecord hitr) {
     
     vec3 a = vertice[indices[triId * 3]].position;

@@ -3,14 +3,19 @@
 
 #include "glad/glad.h"
 #include "shapes.hpp"
+#include "BVH.hpp"
+
 #include <vector>
 #include <array>
 #include <initializer_list>
 
 class Scene {
   public:
+    std::vector<Vertex> cpuVertices;
+    std::vector<BVHNode> nodes;
     std::vector<GPUSphere> spheres;
     std::vector<GPUVertex> vertices;
+
     std::vector<int> indices;
     std::vector<int> triMatIds;
 
@@ -29,6 +34,8 @@ class Scene {
     
     void addTriMatIds(std::initializer_list<int> triMatList);
     void addTriMatIds(std::vector<int> &triMatList);
+
+    void buildBVH();
 
     void update(int index);
 };

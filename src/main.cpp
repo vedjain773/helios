@@ -6,7 +6,7 @@
 #include <iostream>
 
 int main() {  
-    /*CamConfig cfg = {
+    CamConfig cfg = {
         {0, 0, -50},
         {0, 1, 0},
         -90.0f,
@@ -28,9 +28,9 @@ int main() {
     ComputeShader compShader("../src/shaders/compute.glsl");   
 
     renderer.loadShaders(shader, compShader);
-    renderer.runRenderLoop();*/
+    renderer.runRenderLoop();
 
-    Vertex v0 = {{-0.5, -0.5, -0.5}};
+    /*Vertex v0 = {{-0.5, -0.5, -0.5}};
     Vertex v1 = {{ 0.5, -0.5, -0.5}};
     Vertex v2 = {{ 0.5,  0.5, -0.5}};
     Vertex v3 = {{-0.5,  0.5, -0.5}};
@@ -59,7 +59,7 @@ int main() {
 
     std::cout << "\nAfter tree construction...\n";
     builder.printNode(0, 0);
-    builder.testIntersection({{0.0, 0.0, 2.0}, {0.1, 0.1, -1.0}});
+    builder.testIntersection({{0.0, 0.0, 2.0}, {0.1, 0.1, -1.0}});*/
 
     return 0;
 }

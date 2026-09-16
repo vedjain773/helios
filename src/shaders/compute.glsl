@@ -35,6 +35,13 @@ layout(std430, binding = 4) buffer VertexBuffer { Vertex vertice[]; };
 layout(std430, binding = 5) buffer IndexBuffer { int indices[]; };
 
 layout(std430, binding = 6) buffer TriMats { int triMatIds[]; };
+layout(std430, binding = 7) buffer NodesBuffer { BVHNode nodes[]; };
+
+bool isLeaf(int nodeIndex) {
+    BVHNode node = nodes[nodeIndex];
+
+    return (node.childAIndex == 0 && node.childBIndex == 0);
+}
 
 void buildTB(vec3 n, inout vec3 T, inout vec3 B) {
     vec3 nUp = abs(dot(n, vec3(0, 1, 0))) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0);
@@ -81,10 +88,30 @@ bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
         }
     }
 
-    for (int i = 0; i < NUM_TRIANGLES; i++) {
-        if (hitTriangle(i, ray, interval, hitr)) {
-            hasHit = true;
-            interval.tmax = hitr.t;
+    int nodeStack[32];
+    int stackPtr = 0;
+
+    nodeStack[stackPtr++] = 0;
+
+    while (stackPtr > 0) {
+        int currNodeIndex = nodeStack[--stackPtr];
+
+        if(!hitNode(currNodeIndex, ray)) continue;
+
+        if(isLeaf(currNodeIndex)) {
+            int triangleIndex = nodes[currNodeIndex].triangleIndex;
+            int triangleCount = nodes[currNodeIndex].triangleCount;
+
+            for (int i = triangleIndex; i < triangleIndex + triangleCount; i++) {
+                if (hitTriangle(i, ray, interval, hitr)) {
+                    hasHit = true;
+                    interval.tmax = hitr.t;
+                } 
+            } 
+            
+        } else {
+            nodeStack[stackPtr++] = nodes[currNodeIndex].childAIndex;
+            nodeStack[stackPtr++] = nodes[currNodeIndex].childBIndex;
         }
     }
 

@@ -21,11 +21,13 @@ struct Ray {
 
 struct BVHNode {
     glm::vec3 boundsMin;
+    float _pad0 = 0.0f;
     glm::vec3 boundsMax;
     int triangleIndex;
     int triangleCount;
     int childAIndex = 0;
     int childBIndex = 0;
+    float _pad1 = 0.0f;
 };
 
 class BVHBuilder {
@@ -61,6 +63,7 @@ class BVHBuilder {
 
     std::vector<int> getIndices();
     std::vector<int> getMatIDs();
+    std::vector<BVHNode> getNodes();
 
     void testIntersection(const Ray &ray);
 };

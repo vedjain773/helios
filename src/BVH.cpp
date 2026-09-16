@@ -187,13 +187,7 @@ void BVHBuilder::printNode(int index, int depth) {
     BVHNode &node = nodes[index];
 
     if (isLeaf(node)) {
-        std::string min = std::format(
-                "bmin: {} {} {}\n", node.boundsMin.x, node.boundsMin.y, node.boundsMin.z);
-
-        std::string max = std::format(
-                "bmax: {} {} {}\n", node.boundsMax.x, node.boundsMax.y, node.boundsMax.z);
-
-        std::cout << min << max << std::format("Leaf: {}\n", node.triangleIndex);
+        std::cout << std::format("Leaf: {} {}\n", node.triangleIndex, node.triangleCount);
     } else { 
         std::cout <<
             std::format("{}, {} {}\n", node.triangleCount, node.childAIndex, node.childBIndex);
@@ -214,6 +208,8 @@ std::vector<int> BVHBuilder::getIndices() {
     for (Triangle &tri: triangles) {
         indices.insert(indices.end(), tri.indices.begin(), tri.indices.end());
     }
+
+    return indices;
 }
 
 std::vector<int> BVHBuilder::getMatIDs() {
@@ -222,6 +218,12 @@ std::vector<int> BVHBuilder::getMatIDs() {
     for (Triangle &tri: triangles) {
         matIds.push_back(tri.matId);
     }
+
+    return matIds;
+}
+
+std::vector<BVHNode> BVHBuilder::getNodes() {
+    return nodes;
 }
 
 void BVHBuilder::testIntersection(const Ray &ray) {

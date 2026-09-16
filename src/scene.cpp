@@ -6,6 +6,8 @@
 #include "glm/gtx/rotate_vector.hpp"
 
 #include <iostream>
+#include <algorithm>
+#include <cassert>
 
 void Scene::addSphere(Sphere &sphere) {
     GPUSphere gpuSphere {
@@ -31,6 +33,8 @@ void Scene::addMaterial(Material &material) {
 }
 
 void Scene::addVertices(std::initializer_list<Vertex> vertexList) {
+    cpuVertices.insert(cpuVertices.end(), vertexList);
+
     for (const Vertex &vertex: vertexList) {
         GPUVertex gpuvertex {
             .position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z),
@@ -42,6 +46,8 @@ void Scene::addVertices(std::initializer_list<Vertex> vertexList) {
 }
 
 void Scene::addVertices(std::vector<Vertex> &vertexList) {
+    cpuVertices.insert(cpuVertices.end(), vertexList.begin(), vertexList.end());
+
     for (const Vertex &vertex: vertexList) {
         GPUVertex gpuvertex {
             .position = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z),
@@ -70,6 +76,20 @@ void Scene::addTriMatIds(std::initializer_list<int> triMatList) {
 
 void Scene::addTriMatIds(std::vector<int> &triMatList) {
     triMatIds.insert(triMatIds.end(), triMatList.begin(), triMatList.end());
+}
+
+void Scene::buildBVH() {
+    BVHBuilder builder(cpuVertices, indices, triMatIds);
+    builder.buildTree(0, 0);
+
+    std::vector<int> indicesN = builder.getIndices();
+    std::vector<int> triMatIdsN = builder.getMatIDs();
+    nodes = builder.getNodes();
+
+    assert(indicesN.size() == indices.size());
+    assert(triMatIdsN.size() == triMatIds.size());
+
+    assert(std::is_permutation(indices.begin(), indices.end(), indicesN.begin()));
 }
 
 void Scene::update(int index) {
@@ -151,7 +171,8 @@ Scene buildCube() {
     
     Mesh tallMesh = createCubeMesh(scene, {-0.25, -0.5, -0.3}, {0.25, 0.6, 0.25}, 4);
     rotateMesh(scene, tallMesh, 16.0f); 
-
+    
+    scene.buildBVH();
     return scene;
 }
 

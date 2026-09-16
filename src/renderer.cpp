@@ -96,6 +96,7 @@ void Renderer::initScene() {
     initBuffer(2, 4, scene.vertices.size() * sizeof(GPUVertex), scene.vertices.data());
     initBuffer(3, 5, scene.indices.size() * sizeof(int), scene.indices.data());
     initBuffer(4, 6, scene.triMatIds.size() * sizeof(int), scene.triMatIds.data());
+    initBuffer(5, 7, scene.nodes.size() * sizeof(BVHNode), scene.nodes.data());
 }
 
 void Renderer::updateScene(int index) {

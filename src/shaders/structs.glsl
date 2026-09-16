@@ -61,3 +61,11 @@ struct BSDFSample {
     float pdf_spec;
 };
 
+struct BVHNode {
+    vec3 boundsMin;
+    vec3 boundsMax;
+    int triangleIndex;
+    int triangleCount;
+    int childAIndex;
+    int childBIndex;
+};
