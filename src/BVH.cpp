@@ -5,6 +5,7 @@
 #include <stack>
 
 #define MAX_DEPTH 15
+#define MAX_TRIANGLES 8
 
 //---
 
@@ -118,8 +119,11 @@ void BVHBuilder::buildTree(int nodeIndex, int depth) {
 
     BVHNode &currNode = nodes[nodeIndex];
    
-    if (currNode.triangleCount <= 1) {
-        auto [boundsMin, boundsMax] = getBBox(currNode.triangleIndex, 1);
+    if (currNode.triangleCount <= MAX_TRIANGLES) {
+        int count = currNode.triangleCount;
+        
+        auto [boundsMin, boundsMax] = getBBox(currNode.triangleIndex, count);
+        
         currNode.boundsMin = boundsMin;
         currNode.boundsMax = boundsMax;
         return;

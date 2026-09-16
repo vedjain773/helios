@@ -229,26 +229,42 @@ Scene buildCubeAlt() {
 }
 
 Scene buildObj() {
-    ObjLoader objLoader("../obj/teapot.obj");
+    ObjLoader objLoader("../obj/pine_tree.obj");
     Scene scene;
 
-    Vertex v0 = {{-0.5, -1.0, -0.5}};
-    Vertex v1 = {{ 0.5, -1.0, -0.5}};
-    Vertex v2 = {{ 0.5, -1.0,  0.5}};
-    Vertex v3 = {{-0.5, -1.0,  0.5}};
-    
-    scene.addVertices({v0, v1, v2, v3});
-    scene.addIndices({0, 1, 2, 2, 0, 3});
-
-    Material mat_red = {{1.0, 0.0, 0.0}, 0.0, 1.0, 0.0, 0};
-    scene.addMaterial(mat_red);
-
-    scene.addTriMatIds({0, 0});
-
+    Material mat_red = {{1.0, 0.0, 0.0}, 0.00, 1.00, 0.00, 0};
+    Material mat_green = {{0.0, 1.0, 0.0}, 0.00, 1.00, 0.00, 0};
     Material mat_white = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
+
+    Vertex v0 = {{-2.0, -0.0, -2.0}};
+    Vertex v1 = {{ 2.0, -0.0, -2.0}};
+    Vertex v2 = {{ 2.0,  2.5, -2.0}};
+    Vertex v3 = {{-2.0,  2.5, -2.0}};
+    Vertex v4 = {{-2.0, -0.0,  2.0}};
+    Vertex v5 = {{ 2.0, -0.0,  2.0}};
+    Vertex v6 = {{ 2.0,  2.5,  2.0}};
+    Vertex v7 = {{-2.0,  2.5,  2.0}};
+
+    scene.addMaterial(mat_red);
+    scene.addMaterial(mat_green);
     scene.addMaterial(mat_white);
 
-    Mesh objmesh = objLoader.createObjMesh(scene, 1);
+    scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
+    int base = 0;
+    scene.addIndices({
+            base + 0, base + 1, base + 2,   base + 0, base + 2, base + 3,
+            base + 4, base + 0, base + 3,   base + 4, base + 3, base + 7,
+            base + 1, base + 5, base + 6,   base + 1, base + 6, base + 2,
+            base + 4, base + 5, base + 1,   base + 4, base + 1, base + 0,
+            base + 3, base + 2, base + 6,   base + 3, base + 6, base + 7
+    });
+    
+    scene.addTriMatIds({2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
+
+    Material mat_pine = {{0.145, 0.255, 0.090}, 0.00, 1.00, 0.00, 0};
+    scene.addMaterial(mat_pine);
+
+    Mesh objmesh = objLoader.createObjMesh(scene, 3);
     std::cout << "Done: " << objmesh.vertexOffset << "\n";
     
     scene.buildBVH();

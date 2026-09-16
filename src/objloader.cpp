@@ -28,8 +28,16 @@ ObjData ObjLoader::parseObjFile() {
             std::string token;
 
             while (ss >> token) {
+                size_t slash = token.find('/');
+
+                if (slash != std::string::npos)
+                    token = token.substr(0, slash);
+
                 int vIndex = std::stoi(token);
-                if (vIndex < 0) vIndex = int(result.vertices.size()) + vIndex + 1;
+
+                if (vIndex < 0)
+                    vIndex = int(result.vertices.size()) + vIndex + 1;
+
                 faceIndices.push_back(vIndex - 1);
             }
 
