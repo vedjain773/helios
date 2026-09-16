@@ -128,7 +128,6 @@ Scene buildThreeSpheres() {
     scene.addMaterial(mat_diff);
     scene.addMaterial(mat_gr);
       
-    scene.buildBVH();
     return scene;
 }
 
