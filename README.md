@@ -1,8 +1,9 @@
 # Helios
 A GPU-accelerated path tracer built in C++ using OpenGL compute shaders and GLSL for rendering, with ImGui for live scene/material editing.
 
-![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)
 ![Standard Cornell box](assets/cornell.png)
+![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)
+![obj mesh rendering](assets/obj_pine.png)
 
 ## Build & Run
 
@@ -18,11 +19,19 @@ cmake --build build
 
 ## Overview
 
-This project is an implementation-focused exploration of GPU-based path tracing, covering ray-object intersection (spheres and triangle meshes), physically-based materials, multi-bounce global illumination, and a CPU-to-GPU scene pipeline. Rendering happens entirely on the GPU via a compute shader, with the CPU responsible for scene authoring, buffer uploads, and live material editing through an ImGui interface. Frames are progressively accumulated and displayed in real time.
+Helios is a path tracer built around an OpenGL compute shader. The CPU handles scene setup and data management, while ray generation, intersection, shading, and accumulation run on the GPU.
 
+The renderer supports spheres and indexed triangle meshes. Triangle meshes can be accelerated using a Bounding Volume Hierarchy (BVH), reducing the amount of geometry that needs to be tested for each ray.
+
+Rendering is progressively accumulated over multiple frames. This makes it possible to render multiple samples per pixel over time rather than having to finish the entire path tracing process in a single frame.
 
 ## Features
 
-The renderer supports sphere and indexed triangle mesh geometry, with a physically-based material model covering albedo, metallic, roughness, IOR, transmission, and emission. Materials are shaded using a Cook-Torrance specular BRDF (GGX distribution, Smith geometry term, Schlick Fresnel) combined with Lambertian diffuse, stochastically sampled and mixture-weighted for correct multi-bounce Monte Carlo integration.
+The renderer supports sphere and indexed triangle mesh geometry. Triangle meshes can be accelerated using a Bounding Volume Hierarchy (BVH) for faster ray intersection.
 
-Dielectric materials support physically-based reflection and refraction, including total internal reflection. Direct lighting is computed via explicit shadow rays, and scene data — geometry and materials alike — is authored on the CPU and uploaded to the GPU through a verified, `std430`-compliant buffer pipeline. Materials can be edited live through an ImGui interface, with only changed data re-uploaded to the GPU each frame.
+Materials support albedo, metallic, roughness, IOR, transmission, and emission. The renderer uses a Cook-Torrance BRDF with GGX, Smith geometry, and Schlick Fresnel for specular reflection, along with Lambertian diffuse shading.
+
+Dielectric materials support reflection and refraction, including total internal reflection. Direct lighting is handled using shadow rays, while additional light transport is handled through multiple path bounces.
+
+Scene and material data are stored in GPU buffers using `std430` layouts. Materials can be edited at runtime through ImGui, with changes being uploaded without rebuilding the scene.
+
