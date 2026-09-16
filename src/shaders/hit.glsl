@@ -45,7 +45,7 @@ void sort2(inout float arr[2]) {
     }
 }
 
-bool hitNode(int nodeId, Ray ray) {
+bool hitNode(int nodeId, Ray ray, Interval interval) {
     vec3 boundsMin = nodes[nodeId].boundsMin;
     vec3 boundsMax = nodes[nodeId].boundsMax;
 
@@ -72,8 +72,8 @@ bool hitNode(int nodeId, Ray ray) {
     float far = min(min(xInter[1], yInter[1]), zInter[1]);
     
     if (isnan(near) || isnan(far)) return false;
-
-    return near <= far; 
+    
+    return near <= far;
 }
 
 bool hitTriangle(int triId, Ray ray, Interval interval, inout HitRecord hitr) {

@@ -82,7 +82,7 @@ void Renderer::createScreenQuad() {
 }
 
 void Renderer::initScene() {
-    glGenBuffers(5, buffers); 
+    glGenBuffers(6, buffers); 
     
     auto initBuffer = [this](unsigned int i, int bufId,
             std::size_t sizeInBytes, void const *data) {

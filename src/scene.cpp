@@ -90,6 +90,9 @@ void Scene::buildBVH() {
     assert(triMatIdsN.size() == triMatIds.size());
 
     assert(std::is_permutation(indices.begin(), indices.end(), indicesN.begin()));
+
+    indices = indicesN;
+    triMatIds = triMatIdsN;
 }
 
 void Scene::update(int index) {
@@ -287,7 +290,14 @@ void rotateMesh(Scene &scene, Mesh &mesh, float angle) {
 
     for (int i = vertexOffset; i < vertexOffset + vertexCount; i++) {
         glm::vec3 pos = scene.vertices[i].position;
-        scene.vertices[i].position = glm::rotate(pos, glm::radians(angle),
+
+        glm::vec3 rotated = glm::rotate(pos, glm::radians(angle),
                 glm::vec3(0.0f, 1.0f, 0.0f));
+
+        scene.vertices[i].position = rotated; 
+        
+        scene.cpuVertices[i].position = {
+            rotated.x, rotated.y, rotated.z
+        };
     }
 }

@@ -86,7 +86,7 @@ bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
             hasHit = true;
             interval.tmax = hitr.t;
         }
-    }
+    } 
 
     int nodeStack[32];
     int stackPtr = 0;
@@ -96,7 +96,7 @@ bool traceRay(Ray ray, Interval interval, inout HitRecord hitr) {
     while (stackPtr > 0) {
         int currNodeIndex = nodeStack[--stackPtr];
 
-        if(!hitNode(currNodeIndex, ray)) continue;
+        if(!hitNode(currNodeIndex, ray, interval)) continue;
 
         if(isLeaf(currNodeIndex)) {
             int triangleIndex = nodes[currNodeIndex].triangleIndex;
@@ -237,8 +237,8 @@ void main() {
     ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
    
     Ray ray = genRay(texelCoord);
-    vec3 sampleColor = closestHit(ray, texelCoord);
-    
+    vec3 sampleColor = closestHit(ray, texelCoord); 
+
     if (any(isnan(sampleColor)) || any(isinf(sampleColor)) )
         sampleColor = vec3(0.0);
 
