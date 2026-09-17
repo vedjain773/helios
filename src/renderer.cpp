@@ -155,6 +155,9 @@ void Renderer::runRenderLoop() {
         600.0f
     }; 
 
+    computeShader->use();
+    scene.uploadLight(computeShader->ID);
+
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
          

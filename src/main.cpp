@@ -7,7 +7,7 @@
 
 int main() {  
     CamConfig cfg = {
-        {0, 0, -50},
+        {0, 0, 0},
         {0, 1, 0},
         -90.0f,
         0.0f,
@@ -18,7 +18,7 @@ int main() {
 
     Camera camera(cfg);
 
-    Scene scene = buildCube();
+    Scene scene = buildThreeSpheres();
 
     Renderer renderer(800, 600, camera, scene);
     renderer.initGLFW();

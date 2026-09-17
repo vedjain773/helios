@@ -13,20 +13,13 @@ uniform vec3 pixelDeltaV;
 
 uniform int frameCounter;
 
-//vec3 lightPos = vec3(1, 1, 1);
 const int MAX_BOUNCES = 5;
 const int NUM_TRIANGLES = 30;
 const float FIREFLY_CLAMP = 5.0;
 
 #include "structs.glsl"
 
-QuadLight quadLight = QuadLight(
-    vec3(-0.15, 0.49, -0.15),
-    vec3(0.3, 0.0, 0.0),
-    vec3(0.0, 0.0, 0.3),
-    vec3(0.0, -1.0, 0.0),
-    vec3(15.0, 15.0, 15.0)
-);
+uniform QuadLight quadLight;
 
 layout(std430, binding = 1) buffer SphereBuffer { Sphere spheres[]; };
 layout(std430, binding = 2) buffer MaterialBuffer { Material materials[]; };

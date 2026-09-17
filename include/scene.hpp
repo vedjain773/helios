@@ -9,7 +9,18 @@
 #include <array>
 #include <initializer_list>
 
+struct QuadLight {
+    glm::vec3 corner;
+    glm::vec3 edge1;
+    glm::vec3 edge2;
+    glm::vec3 normal = glm::vec3(0.0f, -1.0f, 0.0f);
+    glm::vec3 emission = glm::vec3(15.0f, 15.0f, 15.0f);
+};
+
 class Scene {
+  private:
+    QuadLight light;
+
   public:
     std::vector<Vertex> cpuVertices;
     std::vector<BVHNode> nodes;
@@ -23,7 +34,10 @@ class Scene {
     std::vector<GPUMaterial> materials;
     
     void addSphere(Sphere &sphere);
+    void addSpheres(std::initializer_list<Sphere> sphereList);
+
     void addMaterial(Material &material);
+    void addMaterials(std::initializer_list<Material> materialList);
 
     void addVertices(std::initializer_list<Vertex> vertexList);
     void addVertices(std::vector<Vertex> &vertexList);
@@ -34,9 +48,11 @@ class Scene {
     
     void addTriMatIds(std::initializer_list<int> triMatList);
     void addTriMatIds(std::vector<int> &triMatList);
-
+    
     void buildBVH();
 
+    void updateLight(const Vec3 &corner, const Vec3 &edge1, const Vec3 &edge2);
+    void uploadLight(unsigned int ID);
     void update(int index);
 };
 

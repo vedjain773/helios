@@ -3,7 +3,7 @@ A GPU-accelerated path tracer built in C++ using OpenGL compute shaders and GLSL
 
 ![Standard Cornell box](assets/cornell.png)
 ![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)
-![obj mesh rendering](assets/obj_pine.png)
+![obj mesh rendering](assets/suzanne.png)
 
 ## Build & Run
 

@@ -19,6 +19,12 @@ void Scene::addSphere(Sphere &sphere) {
     spheres.push_back(gpuSphere);
 }
 
+void Scene::addSpheres(std::initializer_list<Sphere> sphereList) {
+    for (Sphere sphere: sphereList) {
+        addSphere(sphere);
+    }
+}
+
 void Scene::addMaterial(Material &material) {
     GPUMaterial gpuMaterial = {
         .albedo = glm::vec3(material.albedo.x, material.albedo.y, material.albedo.z),
@@ -30,6 +36,12 @@ void Scene::addMaterial(Material &material) {
 
     materials.push_back(gpuMaterial);
     cpuMaterials.emplace_back(material);
+}
+
+void Scene::addMaterials(std::initializer_list<Material> materialList) {
+    for (Material material: materialList) {
+        addMaterial(material);
+    }
 }
 
 void Scene::addVertices(std::initializer_list<Vertex> vertexList) {
@@ -95,6 +107,31 @@ void Scene::buildBVH() {
     triMatIds = triMatIdsN;
 }
 
+void Scene::updateLight(const Vec3 &corner, const Vec3 &edge1, const Vec3 &edge2) {
+    light.corner = glm::vec3(corner.x, corner.y, corner.z);
+    light.edge1 = glm::vec3(edge1.x, edge1.y, edge1.z);
+    light.edge2 = glm::vec3(edge2.x, edge2.y, edge2.z);
+}
+
+void Scene::uploadLight(unsigned int ID) {
+    int loc;
+
+    loc = glGetUniformLocation(ID, "quadLight.corner");
+    glUniform3fv(loc, 1, glm::value_ptr(light.corner));
+    
+    loc = glGetUniformLocation(ID, "quadLight.edge1");
+    glUniform3fv(loc, 1, glm::value_ptr(light.edge1));
+    
+    loc = glGetUniformLocation(ID, "quadLight.edge2");
+    glUniform3fv(loc, 1, glm::value_ptr(light.edge2));
+
+    loc = glGetUniformLocation(ID, "quadLight.normal");
+    glUniform3fv(loc, 1, glm::value_ptr(light.normal));
+
+    loc = glGetUniformLocation(ID, "quadLight.emission");
+    glUniform3fv(loc, 1, glm::value_ptr(light.emission));
+}
+
 void Scene::update(int index) {
     GPUMaterial &target = materials[index];
     Material material = cpuMaterials[index];
@@ -118,16 +155,16 @@ Scene buildThreeSpheres() {
     Material mat_gr = {{0.0, 1.0, 0.0}, 0.25, 0.25, 0.00, 0}; 
 
     Scene scene;
-    scene.addSphere(sp_gl);
-    scene.addSphere(sp_metal);
-    scene.addSphere(sp_diff);
-    scene.addSphere(sp_gr);
 
-    scene.addMaterial(mat_gl);
-    scene.addMaterial(mat_metal);
-    scene.addMaterial(mat_diff);
-    scene.addMaterial(mat_gr);
-      
+    scene.addSpheres({sp_gl, sp_metal, sp_diff, sp_gr});
+    scene.addMaterials({mat_gl, mat_metal, mat_diff, mat_gr});
+
+    scene.updateLight(
+        {-0.15, 0.49, -0.15},
+        {0.3, 0.0, 0.0},
+        {0.0, 0.0, 0.3}
+    );
+        
     return scene;
 }
 
@@ -147,9 +184,7 @@ Scene buildCube() {
     Vertex v6 = {{ 0.5,  0.5,  0.5}};
     Vertex v7 = {{-0.5,  0.5,  0.5}};
 
-    scene.addMaterial(mat_red);
-    scene.addMaterial(mat_green);
-    scene.addMaterial(mat_white);
+    scene.addMaterials({mat_red, mat_green, mat_white});
 
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
     int base = 0;
@@ -176,6 +211,13 @@ Scene buildCube() {
     rotateMesh(scene, tallMesh, 16.0f); 
     
     scene.buildBVH();
+
+    scene.updateLight(
+        {-0.15, 0.49, -0.15},
+        {0.3, 0.0, 0.0},
+        {0.0, 0.0, 0.3}
+    );
+
     return scene;
 }
 
@@ -195,9 +237,7 @@ Scene buildCubeAlt() {
     Vertex v6 = {{ 0.5,  0.5,  0.5}};
     Vertex v7 = {{-0.5,  0.5,  0.5}};
 
-    scene.addMaterial(mat_red);
-    scene.addMaterial(mat_green);
-    scene.addMaterial(mat_white);
+    scene.addMaterials({mat_red, mat_green, mat_white});
 
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
     int base = 0;
@@ -224,29 +264,34 @@ Scene buildCubeAlt() {
     scene.addSphere(sp_gl);
 
     scene.buildBVH();
+
+    scene.updateLight(
+        {-0.15, 0.49, -0.15},
+        {0.3, 0.0, 0.0},
+        {0.0, 0.0, 0.3}
+    );
+
     return scene;
 }
 
 Scene buildObj() {
-    ObjLoader objLoader("../obj/pine_tree.obj");
+    ObjLoader objLoader("../obj/suzanne.obj");
     Scene scene;
 
     Material mat_red = {{1.0, 0.0, 0.0}, 0.00, 1.00, 0.00, 0};
     Material mat_green = {{0.0, 1.0, 0.0}, 0.00, 1.00, 0.00, 0};
     Material mat_white = {{1.0, 1.0, 1.0}, 0.00, 1.00, 0.00, 0};
 
-    Vertex v0 = {{-2.0, -0.0, -2.0}};
-    Vertex v1 = {{ 2.0, -0.0, -2.0}};
-    Vertex v2 = {{ 2.0,  2.5, -2.0}};
-    Vertex v3 = {{-2.0,  2.5, -2.0}};
-    Vertex v4 = {{-2.0, -0.0,  2.0}};
-    Vertex v5 = {{ 2.0, -0.0,  2.0}};
-    Vertex v6 = {{ 2.0,  2.5,  2.0}};
-    Vertex v7 = {{-2.0,  2.5,  2.0}};
+    Vertex v0 = {{-4.0, -0.25, 3.0}};
+    Vertex v1 = {{-1.0, -0.25, 3.0}};
+    Vertex v2 = {{-1.0,  2.5,  3.0}};
+    Vertex v3 = {{-4.0,  2.5,  3.0}};
+    Vertex v4 = {{-4.0, -0.0,  6.0}};
+    Vertex v5 = {{-1.0, -0.0,  6.0}};
+    Vertex v6 = {{-1.0,  2.5,  6.0}};
+    Vertex v7 = {{-4.0,  2.5,  6.0}};
 
-    scene.addMaterial(mat_red);
-    scene.addMaterial(mat_green);
-    scene.addMaterial(mat_white);
+    scene.addMaterials({mat_red, mat_green, mat_white});
 
     scene.addVertices({v0, v1, v2, v3, v4, v5, v6, v7});
     int base = 0;
@@ -260,13 +305,20 @@ Scene buildObj() {
     
     scene.addTriMatIds({2, 2, 0, 0, 1, 1, 2, 2, 2, 2});
 
-    Material mat_pine = {{0.145, 0.255, 0.090}, 0.00, 1.00, 0.00, 0};
-    scene.addMaterial(mat_pine);
+    Material mat_w = {{0.901, 0.880, 0.811}, 0.00, 1.00, 0.00, 0};
+    scene.addMaterial(mat_w);
 
     Mesh objmesh = objLoader.createObjMesh(scene, 3);
     std::cout << "Done: " << objmesh.vertexOffset << "\n";
     
     scene.buildBVH();
+
+    scene.updateLight(
+        {-2.5, 2.49, 4.5},
+        {0.5, 0.0, 0.0},
+        {0.0, 0.0, 0.5}
+    );
+
     return scene;
 }
 
