@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 
 #include "shader.hpp"
 #include "compute.hpp"
@@ -29,7 +30,6 @@ class Renderer {
     ComputeShader *computeShader;
 
     GLFWwindow *window;
-    ImGuiIO io;
         
     Camera &camera;
     Scene &scene;

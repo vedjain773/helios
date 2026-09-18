@@ -42,7 +42,8 @@ void Renderer::initImgui() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO();
+    
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -144,7 +145,9 @@ void Renderer::runRenderLoop() {
     int count = 0;
     bool camWindow = true;
     bool pbrWindow = true;
-    
+   
+    ImGuiDockNodeFlags DockSpaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
+
     CamConfig tempCfg = {
         {0, 0, 0},
         {0, 1, 0},
@@ -164,6 +167,28 @@ void Renderer::runRenderLoop() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGuiID dockspaceId= ImGui::DockSpaceOverViewport(0, viewport, DockSpaceFlags);
+
+        static bool firstRun = true;
+        if (firstRun) {
+            firstRun = false;
+
+            ImGui::DockBuilderRemoveNode(dockspaceId);
+            ImGui::DockBuilderAddNode(dockspaceId, DockSpaceFlags | ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dockspaceId, viewport->Size);
+
+            ImGuiID dockRightId = ImGui::DockBuilderSplitNode(
+                    dockspaceId, ImGuiDir_Right, 0.25f, nullptr, &dockspaceId);
+
+            ImGuiID dockRightTopId = ImGui::DockBuilderSplitNode(
+                    dockRightId, ImGuiDir_Up, 0.3f, nullptr, &dockRightId);
+
+            ImGui::DockBuilderDockWindow("Camera", dockRightTopId);
+            ImGui::DockBuilderDockWindow("PBR", dockRightId);
+
+            ImGui::DockBuilderFinish(dockspaceId);
+        }
           
         camera.update();
         computeShader->use();
@@ -226,7 +251,7 @@ void Renderer::runRenderLoop() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
