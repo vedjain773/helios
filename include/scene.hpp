@@ -53,6 +53,9 @@ class Scene {
 
     void updateLight(const Vec3 &corner, const Vec3 &edge1, const Vec3 &edge2);
     void uploadLight(unsigned int ID);
+
+    void uploadBounces(unsigned int ID, int numberOfBounces);
+
     void update(int index);
 };
 

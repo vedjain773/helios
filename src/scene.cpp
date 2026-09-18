@@ -132,6 +132,13 @@ void Scene::uploadLight(unsigned int ID) {
     glUniform3fv(loc, 1, glm::value_ptr(light.emission));
 }
 
+void Scene::uploadBounces(unsigned int ID, int numberOfBounces) {
+    int loc;
+    
+    loc = glGetUniformLocation(ID, "MAX_BOUNCES");
+    glUniform1i(loc, numberOfBounces);
+}
+    
 void Scene::update(int index) {
     GPUMaterial &target = materials[index];
     Material material = cpuMaterials[index];

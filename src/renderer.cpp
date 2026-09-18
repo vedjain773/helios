@@ -15,7 +15,10 @@ int Renderer::initGLFW() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(width, height, "Shaders", nullptr, nullptr);
+    int nWidth = 1.340f * width;
+    int nHeight = 1.033f * height;
+
+    window = glfwCreateWindow(nWidth, nHeight, "Shaders", nullptr, nullptr);
     
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window\n";
@@ -30,11 +33,38 @@ int Renderer::initGLFW() {
         return -1;
     }
  
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, nWidth, nHeight);
     
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallBack);
 
     return 0;
+}
+
+void Renderer::initImguiStyles() { 
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.ScrollbarRounding = 0.0f;
+    style.TabRounding = 0.0f;
+
+    style.DockingNodeHasCloseButton = false;
+    style.DockingSeparatorSize = 0.0f;
+
+    auto& colors = ImGui::GetStyle().Colors;
+
+    colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.0f);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.0f);
+
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.23f, 0.23f, 0.23f, 1.0f);
+
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.45f, 0.45f, 0.45f, 1.0f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.0f);
+
+    colors[ImGuiCol_Tab] = ImVec4(0.13f, 0.13f, 0.13f, 1.0f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.0f);
+
+    colors[ImGuiCol_Text] = ImVec4(0.85f, 0.85f, 0.85f, 1.0f);
 }
 
 void Renderer::initImgui() {
@@ -49,10 +79,16 @@ void Renderer::initImgui() {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; 
 
+    ImFont* font = io.Fonts->AddFontFromFileTTF(
+        "../assets/fonts/inter_reg.ttf",
+        13.0f
+    );
+
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
     ImGui::StyleColorsDark();
+    initImguiStyles();
 }
 
 void Renderer::loadShaders(Shader &shader, ComputeShader &computeShader) {
@@ -143,9 +179,12 @@ void Renderer::runRenderLoop() {
     
     int matSize = scene.materials.size();
     int count = 0;
+    int numBounces = 5;
+    
     bool camWindow = true;
     bool pbrWindow = true;
-   
+    bool perfWindow = true;
+
     ImGuiDockNodeFlags DockSpaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
 
     CamConfig tempCfg = {
@@ -184,8 +223,14 @@ void Renderer::runRenderLoop() {
             ImGuiID dockRightTopId = ImGui::DockBuilderSplitNode(
                     dockRightId, ImGuiDir_Up, 0.3f, nullptr, &dockRightId);
 
+            ImGuiID dockBottomRightId = ImGui::DockBuilderSplitNode(
+                    dockRightId, ImGuiDir_Down, 0.3f, nullptr, &dockRightId);
+
             ImGui::DockBuilderDockWindow("Camera", dockRightTopId);
             ImGui::DockBuilderDockWindow("PBR", dockRightId);
+            ImGui::DockBuilderDockWindow("Performance", dockBottomRightId);
+
+            ImGui::DockBuilderDockWindow("Viewport", dockspaceId);
 
             ImGui::DockBuilderFinish(dockspaceId);
         }
@@ -197,11 +242,16 @@ void Renderer::runRenderLoop() {
         glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
-        shader->use();
-        shader->setInt("tex", 0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        renderQuad();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::Begin("Viewport");
+        ImGui::Image(
+            (ImTextureID)(intptr_t)texture,
+            ImVec2(width, height),
+            ImVec2(0, 1),
+            ImVec2(1, 0)
+        );
+        ImGui::End();
+        ImGui::PopStyleVar();
 
         if (camWindow) {
             bool posUpdate = false;
@@ -248,6 +298,18 @@ void Renderer::runRenderLoop() {
             ImGui::End();
         }
 
+        if (perfWindow) {
+            ImGui::Begin("Performance", &perfWindow);
+
+            bool bounceUpdate = false;
+            bounceUpdate |= ImGui::SliderInt("Bounces", &numBounces, 0, 10);
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+            if (bounceUpdate) scene.uploadBounces(computeShader->ID, numBounces); 
+            
+            ImGui::End();
+        }
+        
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

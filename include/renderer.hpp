@@ -37,6 +37,7 @@ class Renderer {
     void createScreenQuad();
     void renderQuad();
     void initScene();
+    void initImguiStyles();
     void updateScene(int index);
 
   public:

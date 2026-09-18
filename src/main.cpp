@@ -5,6 +5,9 @@
 #include "BVH.hpp"
 #include <iostream>
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
 int main() {  
     CamConfig cfg = {
         {0, 0, 0},
@@ -18,9 +21,9 @@ int main() {
 
     Camera camera(cfg);
 
-    Scene scene = buildThreeSpheres();
+    Scene scene = buildCube();
 
-    Renderer renderer(800, 600, camera, scene);
+    Renderer renderer(WINDOW_WIDTH, WINDOW_HEIGHT, camera, scene);
     renderer.initGLFW();
     renderer.initImgui(); 
 
