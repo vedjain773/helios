@@ -3,10 +3,14 @@
 #include <iostream>
 
 Camera::Camera(CamConfig &config)
-    :position(config.position), up(config.up), yaw(config.yaw), pitch(config.pitch), 
-    fov(config.fov), width(config.width), height(config.height) 
-{
-    aspectRatio = width / height; 
+    : position(config.position),
+      up(config.up),
+      yaw(config.yaw),
+      pitch(config.pitch),
+      fov(config.fov),
+      width(config.width),
+      height(config.height) {
+    aspectRatio = width / height;
     update();
 }
 
@@ -20,7 +24,7 @@ void Camera::setCamDir(float yaw, float pitch) {
 }
 
 void Camera::setProjCfg(float fov) {
-    this->fov = fov; 
+    this->fov = fov;
 }
 
 void Camera::update() {
@@ -32,11 +36,10 @@ void Camera::update() {
     float h = std::tan(theta / 2.0f);
     float viewportHeight = 2 * h * focalLength;
     float viewportWidth = viewportHeight * aspectRatio;
-        
-    glm::vec3 forward = glm::vec3(
-            cos(glm::radians(pitch)) * cos(glm::radians(yaw)),
-            sin(glm::radians(pitch)),
-            cos(glm::radians(pitch)) * sin(glm::radians(yaw)));
+
+    glm::vec3 forward =
+        glm::vec3(cos(glm::radians(pitch)) * cos(glm::radians(yaw)), sin(glm::radians(pitch)),
+                  cos(glm::radians(pitch)) * sin(glm::radians(yaw)));
 
     glm::vec3 w = -forward;
     glm::vec3 u = glm::normalize(glm::cross(worldUp, w));
@@ -47,22 +50,20 @@ void Camera::update() {
 
     delu = viewportU / width;
     delv = viewportV / height;
-    
-    glm::vec3 bottomLeft = camPos - w * focalLength 
-        - viewportU * 0.5f - viewportV * 0.5f;
-    topLeftPix = bottomLeft + 0.5f * delu + 0.5f * delv;
 
+    glm::vec3 bottomLeft = camPos - w * focalLength - viewportU * 0.5f - viewportV * 0.5f;
+    topLeftPix = bottomLeft + 0.5f * delu + 0.5f * delv;
 }
 
-void Camera::updateParams(unsigned int ID) { 
+void Camera::updateParams(unsigned int ID) {
     int loc;
 
     loc = glGetUniformLocation(ID, "center");
     glUniform3fv(loc, 1, glm::value_ptr(camPos));
-    
+
     loc = glGetUniformLocation(ID, "pixel00Loc");
     glUniform3fv(loc, 1, glm::value_ptr(topLeftPix));
-    
+
     loc = glGetUniformLocation(ID, "pixelDeltaU");
     glUniform3fv(loc, 1, glm::value_ptr(delu));
 

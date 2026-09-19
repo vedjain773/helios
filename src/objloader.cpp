@@ -1,9 +1,10 @@
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include "objloader.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
-ObjLoader::ObjLoader(const std::string &filePath): filePath(filePath) {}
+ObjLoader::ObjLoader(const std::string &filePath)
+    : filePath(filePath) {}
 
 ObjData ObjLoader::parseObjFile() {
     ObjData result;
@@ -48,28 +49,29 @@ ObjData ObjLoader::parseObjFile() {
             }
         }
     }
-    
+
     file.close();
     return result;
 }
 
 Mesh ObjLoader::createObjMesh(Scene &scene, int matId) {
     ObjData objData = parseObjFile();
-    std::cout << "Vertices: " << objData.vertices.size() << " Indices: "
-        << objData.indices.size() << "\n";
+    std::cout << "Vertices: " << objData.vertices.size() << " Indices: " << objData.indices.size()
+              << "\n";
 
     int vertexOffset = scene.vertices.size();
-    int indexOffset = scene.indices.size(); 
-   
-    scene.addVertices(objData.vertices);    
+    int indexOffset = scene.indices.size();
+
+    scene.addVertices(objData.vertices);
 
     std::vector<int> offsetIndices;
     offsetIndices.reserve(objData.indices.size());
-    
-    for (int idx : objData.indices) offsetIndices.push_back(idx + vertexOffset);
-    
+
+    for (int idx : objData.indices)
+        offsetIndices.push_back(idx + vertexOffset);
+
     scene.addIndices(offsetIndices);
-    
+
     int indexCount = scene.indices.size() - indexOffset;
     int vertexCount = scene.vertices.size() - vertexOffset;
 
@@ -77,4 +79,4 @@ Mesh ObjLoader::createObjMesh(Scene &scene, int matId) {
     scene.addTriMatIds(triMatList);
 
     return Mesh{vertexOffset, vertexCount, indexOffset, indexCount, matId};
-} 
+}

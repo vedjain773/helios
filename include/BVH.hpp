@@ -3,15 +3,15 @@
 
 #include "shapes.hpp"
 #include <array>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 struct Triangle {
     std::array<glm::vec3, 3> vertices;
     std::array<int, 3> indices;
     int matId = 0;
 
-    glm::vec3 getCentroid() const; 
+    glm::vec3 getCentroid() const;
 };
 
 struct Ray {
@@ -42,11 +42,11 @@ class BVHBuilder {
     static bool compareY(const Triangle &a, const Triangle &b) {
         return a.getCentroid().y < b.getCentroid().y;
     }
-    
+
     static bool compareZ(const Triangle &a, const Triangle &b) {
         return a.getCentroid().z < b.getCentroid().z;
     }
- 
+
     bool isLeaf(const BVHNode &node);
 
     std::tuple<glm::vec3, glm::vec3> getBBox(int start, int count);
@@ -55,8 +55,8 @@ class BVHBuilder {
 
   public:
     BVHBuilder(std::vector<Vertex> &vertexList, std::vector<int> &indexList,
-            std::vector<int> &matIds);
-    
+               std::vector<int> &matIds);
+
     void printTriangleIndices();
     void printNode(int index, int depth);
     void buildTree(int nodeIndex, int depth);

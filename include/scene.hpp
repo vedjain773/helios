@@ -1,13 +1,13 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include "BVH.hpp"
 #include "glad/glad.h"
 #include "shapes.hpp"
-#include "BVH.hpp"
 
-#include <vector>
 #include <array>
 #include <initializer_list>
+#include <vector>
 
 struct QuadLight {
     glm::vec3 corner;
@@ -32,7 +32,7 @@ class Scene {
 
     std::vector<Material> cpuMaterials;
     std::vector<GPUMaterial> materials;
-    
+
     void addSphere(Sphere &sphere);
     void addSpheres(std::initializer_list<Sphere> sphereList);
 
@@ -45,10 +45,10 @@ class Scene {
     void addIndices(std::initializer_list<int> indexList);
     void addIndices(const std::array<int, 36> &indexList);
     void addIndices(std::vector<int> &indexList);
-    
+
     void addTriMatIds(std::initializer_list<int> triMatList);
     void addTriMatIds(std::vector<int> &triMatList);
-    
+
     void buildBVH();
 
     void updateLight(const Vec3 &corner, const Vec3 &edge1, const Vec3 &edge2);

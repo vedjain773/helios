@@ -34,14 +34,14 @@ Dielectric materials support reflection and refraction, including total internal
 Scene and material data are stored in GPU buffers using `std430` layouts. Materials can be edited at runtime through ImGui, with changes being uploaded without rebuilding the scene.
 
 ## Gallery
-![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)
+![Three-sphere scene: glass, metal, and diffuse materials](assets/three.png)  
 *Glass, metal and diffuse materials*
 
-![Standard Cornell box](assets/cornell.png)
+![Standard Cornell box](assets/cornell.png)  
 *Standard Cornell box*
 
-![Glass magnification](assets/glass_mag.png)
+![Glass magnification](assets/glass_mag.png)  
 *A smaller red sphere magnified through the glass sphere in front of it*
 
-![obj mesh rendering](assets/suzanne.png)
+![obj mesh rendering](assets/suzanne.png)  
 *Obj mesh rendering: Suzanne*

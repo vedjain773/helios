@@ -1,10 +1,10 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include "vector.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "vector.hpp"
 
 struct Material {
     Vec3 albedo;
@@ -27,7 +27,7 @@ struct Sphere {
     Vec3 center;
     float radius;
     int matId;
-}; 
+};
 
 struct GPUSphere {
     glm::vec3 center;

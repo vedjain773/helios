@@ -1,10 +1,10 @@
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
 
-#include <string>
-#include <vector>
 #include "scene.hpp"
 #include "shapes.hpp"
+#include <string>
+#include <vector>
 
 struct ObjData {
     std::vector<Vertex> vertices;
@@ -12,10 +12,10 @@ struct ObjData {
 };
 
 class ObjLoader {
-    private:
+  private:
     std::string filePath;
 
-    public:
+  public:
     ObjLoader(const std::string &filePath);
     ObjData parseObjFile();
     Mesh createObjMesh(Scene &scene, int matId);

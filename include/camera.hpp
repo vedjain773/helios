@@ -2,14 +2,14 @@
 #define CAMERA_H
 
 #include "glad/glad.h"
-#include "vector.hpp"
-#include "shader.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "shader.hpp"
+#include "vector.hpp"
 
 struct CamConfig {
-    Vec3 position; 
+    Vec3 position;
     Vec3 up;
     float yaw;
     float pitch;
@@ -22,15 +22,15 @@ class Camera {
   private:
     Vec3 position;
     Vec3 up;
-    
+
     float yaw;
     float pitch;
     float fov;
-    
+
     float width;
     float height;
     float aspectRatio;
-   
+
     glm::vec3 camPos;
     glm::vec3 topLeftPix;
     glm::vec3 delu;
